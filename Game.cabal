@@ -1,0 +1,36 @@
+cabal-version:      2.4
+name:               Game
+version:            0.1.0.0
+category:           Game
+build-type:         Simple
+
+-- A short (one-line) description of the package.
+-- synopsis:
+
+-- A longer description of the package.
+-- description:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+-- license:
+author:             Silas Peters and Julianne
+maintainer:         s.h.m.peters@uu.nl
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+executable Game
+    main-is:          Main.hs
+
+    -- Modules included in this executable, other than Main.
+    other-modules: Controller, Model, View
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    base ^>=4.14.3.0, gloss, random
+    hs-source-dirs:   src
+    default-language: Haskell2010
