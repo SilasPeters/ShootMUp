@@ -6,7 +6,7 @@ import Graphics.Gloss
 import Model
 
 view :: GameState -> IO Picture
-view gs = loadBMP "wallpaper.bmp"
+view gs = loadBMP "C:\\Users\\silas\\Dropbox\\Uni\\Functioneel Programmeren\\Game\\src\\wallpaper.bmp"
 
 viewPure :: GameState -> Picture
 -- viewPure gstate = case infoToShow gstate of
