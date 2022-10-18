@@ -6,13 +6,14 @@ import Graphics.Gloss
 import Model
 
 view :: GameState -> IO Picture
-view gs = do
-  wallpaper <- loadBMP "C:\\Users\\silas\\Dropbox\\Uni\\Functioneel Programmeren\\Game\\src\\wallpaper.bmp"
-  return . pictures $ wallpaper : [viewPure gs]
+view gs@(GameState(Player (CoordY y))) = do
+  wallpaper <- loadBMP "wallpaper.bmp"
+  player <- loadBMP "spaceship.bmp"
+  return $ pictures [wallpaper, translate (-350) y player]
 
-viewPure :: GameState -> Picture
+--viewPure :: GameState -> Picture
 -- viewPure gstate = case infoToShow gstate of
 --   ShowNothing   -> blank
 --   ShowANumber n -> color green (text (show n))
 --   ShowAChar   c -> color green (text [c])
-viewPure gameState = circleSolid 800
+-- viewPure gameState = circleSolid 800
