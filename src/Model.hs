@@ -1,41 +1,38 @@
 -- | This module contains the data types
 --   which represent the state of the game
 module Model where
-import Distribution.Simple (registrationPackageDB)
+--import Distribution.Simple (registrationPackageDB)
 import Graphics.Gloss
 
-initialState :: GameState
-initialState = GameState (Player (CoordY 0)) [] (Time 0) (Paused False)
+shipMaxY = 220
+imgPlayer = "spaceship.bmp"
+imgAlien = "alien.bmp"
 
--- Gamestate
-newtype Paused = Paused Bool
-newtype Time   = Time Int
+-- Our primitives
+type Paused    = Bool
+type Time      = Float
+type CoordX    = Float
+type CoordY    = Float
+newtype Coords = Coords (CoordX, CoordY)
+type Health    = Float
+
+instance Num Coords where
+  (+) (Coords (x, y)) (Coords (p, q)) = Coords (x + y, p + q)
+  (-) (Coords (x, y)) (Coords (p, q)) = Coords (x - y, p - q)
 
 -- General stuff
 data GameState = GameState Player [Alien] Time Paused
-newtype CoordX = CoordX Float
-newtype CoordY = CoordY Float
-newtype Health = Health Float
 data Size      = Size Float Float
 
 -- Entities
 newtype Player = Player CoordY
-data Astroid   = Astroid Size (CoordX, CoordY)
-data Alien     = Alien (CoordX, CoordY) Health
-
-instance Num CoordX where
-  (+) (CoordX a) (CoordX b) = CoordX (a + b)
-  (-) (CoordX a) (CoordX b) = CoordX (a - b)
-  (*) (CoordX a) (CoordX b) = CoordX (a * b)
-instance Num CoordY where
-  (+) (CoordY a) (CoordY b) = CoordY (a + b)
-  (-) (CoordY a) (CoordY b) = CoordY (a - b)
-  (*) (CoordY a) (CoordY b) = CoordY (a * b)
+data Astroid   = Astroid Coords Size
+data Alien     = Alien Coords Health
 
 -- Classes
 class Entity e where
   move      :: e -> CoordX -> CoordY -> e
-  display   :: e -> Picture  
+  display   :: e -> (Coords -> FilePath -> IO Picture) -> IO Picture
 
 class Entity e => CollidableEntity e where
   collides  :: e -> e -> bool -- of zo
@@ -44,10 +41,23 @@ class Entity e => CollidableEntity e where
 class Entity e => ShootingEntity e where
   shoot :: e -> IO io  
 
+-- Instances
 instance Entity Player where
-  move (Player y) _ dy = Player (y + dy) -- afhankelijk van keyboard
+  move (Player y) _ dy = Player $ clamp (-shipMaxY, shipMaxY) (y + dy)
+  display (Player y) f = f (Coords (-350, y)) imgPlayer
+instance Entity Alien where
+  display (Alien coords _) f = f coords imgAlien
+
 instance ShootingEntity Player where
   shoot (Player y) = undefined
 
 instance Entity Astroid where
-   move (Astroid sz (x, y)) dx dy = Astroid sz (x + dx, y + dy)
+   move (Astroid coords size) dx dy = Astroid (coords + Coords(dx, dy)) size
+
+
+-- Supportive methods
+
+clamp :: Ord a => (a, a) -> a -> a
+clamp (min, max) x | x < min   = min
+                   | x > max   = max
+                   | otherwise = x
