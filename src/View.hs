@@ -9,7 +9,7 @@ imgWallpaper = "wallpaper.bmp"
 type ScreenSize = (Int, Int)
 
 timePos   = Coords (-490, 250)
-pausedPos = Coords (-390, 250)
+pausedPos = Coords (-280, 250)
 
 --view :: GameState -> IO Picture
 --view gs = pictures <$> viewGameState gs

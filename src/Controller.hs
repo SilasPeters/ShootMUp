@@ -11,9 +11,10 @@ pace = 5
 
 -- | Handle one iteration of the game
 step :: Time -> GameState -> IO GameState
-step _ gs@(GameState _ keylist _ _ _) | 'u' `elem` keylist = return (movePlayer gs pace)
-                                      | 'd' `elem` keylist = return (movePlayer gs (-pace))
-                                      | otherwise = return gs
+step t gs@(GameState player keylist enemies time paused) | 'u' `elem` keylist = return (updateGameState gs t pace)
+                                      | 'd' `elem` keylist = return (updateGameState gs t (-pace))
+                                      | ' ' `elem` keylist = return (GameState player keylist enemies time not(paused))
+                                      | otherwise = return (updateGameState gs t 0)
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
@@ -24,10 +25,17 @@ inputKey (EventKey (SpecialKey KeyUp) Down _ _) gs@(GameState _ keylist _ _ _) =
 inputKey (EventKey (SpecialKey KeyUp) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem 'u' keylist)
 inputKey (EventKey (SpecialKey KeyDown) Down _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs ('d' : keylist)
 inputKey (EventKey (SpecialKey KeyDown) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem 'd' keylist)
+inputKey (EventKey (SpecialKey KeyRight) Down _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs ('r' : keylist)
+inputKey (EventKey (SpecialKey KeyRight) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem 'r' keylist)
+inputKey (EventKey (SpecialKey KeySpace) Down _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (' ' : keylist)
+inputKey (EventKey (SpecialKey KeySpace) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem ' ' keylist)
 inputKey _ gs = gs
 
 updateKeyList :: GameState -> [Char] -> GameState
 updateKeyList (GameState player keylist enemies time paused) keys = GameState player keys enemies time paused
+
+updateGameState :: GameState -> Time -> CoordY -> GameState
+updateGameState (GameState player keylist enemies time paused) t dy = (GameState (move player 0 dy) keylist enemies (time+t) paused)
 
 removeItem :: (Eq a) => a -> [a] -> [a]
 removeItem _ []                 = []
