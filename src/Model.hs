@@ -6,7 +6,7 @@ import Graphics.Gloss (Picture)
 
 shipMaxY = 220
 imgPlayer = "spaceship.bmp"
-imgAlien = "alien.bmp"
+imgAlien = "alien.bmp" -- Source: https://clipartcraft.com/explore/spaceship-clipart-pixel/
 
 -- Our primitives
 type Paused    = Bool
