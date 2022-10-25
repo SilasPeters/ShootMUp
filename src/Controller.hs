@@ -2,6 +2,12 @@
 --   in response to time and user input
 module Controller where
 
+import Data.Set as S
+
+
+
+
+
 import Model
 
 import Graphics.Gloss
