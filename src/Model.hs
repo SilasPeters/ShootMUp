@@ -3,7 +3,6 @@
 module Model where
 --import Distribution.Simple (registrationPackageDB)
 import Graphics.Gloss
-import qualified Data.Set as S
 
 shipMaxY = 220
 imgPlayer = "spaceship.bmp"

@@ -7,7 +7,6 @@ import Model
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
-import qualified Data.Set as S
 
 pace = 5
 
@@ -35,7 +34,7 @@ removeItem :: (Eq a) => a -> [a] -> [a]
 removeItem _ []                 = []
 removeItem x (y:ys) | x == y    = removeItem x ys
                     | otherwise = y : removeItem x ys
--- https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell
+-- Source: https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell
 
 movePlayer :: GameState -> CoordY -> GameState
 movePlayer (GameState player keylist aliens t paused) dy = GameState (move player 0 dy) keylist aliens t paused

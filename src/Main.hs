@@ -5,7 +5,6 @@ import Model
 import View
 
 import Graphics.Gloss.Interface.IO.Game
-import Graphics.Gloss
 
 screenSize = (1000, 600)
 initialState = GameState (Player 0) [] [Alien (Coords (300, 100)) 1] 0 False
