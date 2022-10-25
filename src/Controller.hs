@@ -5,16 +5,35 @@ module Controller where
 import Model
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
-import System.Random
+import Control.Monad.Trans.State
+--import System.Random
 
 pace = 5
 
 -- | Handle one iteration of the game
 step :: Time -> GameState -> IO GameState
-step t gs@(GameState player keylist enemies time paused) | 'u' `elem` keylist = return (updateGameState gs t pace)
-                                      | 'd' `elem` keylist = return (updateGameState gs t (-pace))
-                                      | ' ' `elem` keylist = return (GameState player keylist enemies time not(paused))
-                                      | otherwise = return (updateGameState gs t 0)
+-- step t gs@(GameState player keylist enemies time paused) | 'u' `elem` keylist = return (updateGameState gs t pace)
+--                                       | 'd' `elem` keylist = return (updateGameState gs t (-pace))
+--                                       | ' ' `elem` keylist = return (GameState player keylist enemies time not(paused))
+--                                       | otherwise = return (updateGameState gs t 0)
+
+step t gs = return (execState (do
+  -- dingEen
+  -- dingTwee
+  get) gs)
+
+-- dingEen :: State GameState ()
+-- dingEen = modify (\(GameState a b c t d) -> GameState a b c (t+1) d)
+-- dingTwee :: State GameState ()
+-- dingTwee = modify (\a -> a)
+
+
+incrementTime :: State GameState()
+incrementTime = undefined
+processInput :: State GameState() -- keyboard wordt hier verwerkt
+processInput = undefined
+enemiesLogic :: State GameState()
+enemiesLogic = undefined
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState

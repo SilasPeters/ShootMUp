@@ -39,7 +39,7 @@ class Entity e => CollidableEntity e where
   onCollide :: e -> e
 
 class Entity e => ShootingEntity e where
-  shoot :: e -> IO io  
+  shoot :: e -> IO io
 
 -- Instances
 instance Entity Player where
