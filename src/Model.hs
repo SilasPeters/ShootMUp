@@ -2,7 +2,7 @@
 --   which represent the state of the game
 module Model where
 --import Distribution.Simple (registrationPackageDB)
-import Graphics.Gloss
+import Graphics.Gloss (Picture)
 
 shipMaxY = 220
 imgPlayer = "spaceship.bmp"
