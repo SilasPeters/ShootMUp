@@ -3,6 +3,7 @@
 module Model where
 --import Distribution.Simple (registrationPackageDB)
 import Graphics.Gloss
+import qualified Data.Set as S
 
 shipMaxY = 220
 imgPlayer = "spaceship.bmp"
@@ -21,7 +22,7 @@ instance Num Coords where
   (-) (Coords (x, y)) (Coords (p, q)) = Coords (x - y, p - q)
 
 -- General stuff
-data GameState = GameState Player [Alien] Time Paused
+data GameState = GameState Player [Char] [Alien] Time Paused
 data Size      = Size Float Float
 
 -- Entities

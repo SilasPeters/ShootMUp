@@ -15,8 +15,8 @@ pausedPos = Coords (-390, 250)
 --view gs = pictures <$> viewGameState gs
 
 view :: ScreenSize -> GameState -> IO Picture
-view screenSize (GameState player enemies time paused) = pictures <$> sequence (
-  viewIOPicture (Coords (0, 0)) imgWallpaper                        -- Draw the background
+view screenSize (GameState player keylist enemies time paused) = pictures <$> sequence (
+  viewIOPicture (Coords (0, 0)) imgWallpaper            -- Draw the background
     : display player viewIOPicture                      -- Draw player
     : map (`display` viewIOPicture) enemies             -- Draw enemies
    ++ return (viewStats time paused)                    -- Draw stats
