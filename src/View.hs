@@ -19,7 +19,7 @@ view :: ScreenSize -> Picture -> Picture -> Picture -> GameState -> Picture
 view screenSize wallpaperImg playerImg alienImg (GameState Player { pos = pos } keylist enemies time paused) = pictures (
   wallpaperImg                                 -- Draw the background
     : translate (x pos) (y pos) playerImg              -- Draw player
-    : map (translate  alienImg) enemies      -- Draw enemies
+    : map (\Alien{pos = pos} -> translate (x pos) (y pos) alienImg) enemies      -- Draw enemies
    ++ viewStats time paused                    -- Draw stats
     : viewPauseMenuIfPaused paused screenSize  -- Draw pause menu if paused
     : []
