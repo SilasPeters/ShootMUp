@@ -5,7 +5,6 @@ module Controller where
 import Model
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
-import Control.Monad.Trans.State
 --import System.Random
 
 pace = 5
@@ -21,19 +20,19 @@ pace = 5
 --   dingTwee
 --   get) gs)
 
-step :: Time -> GameState -> IO GameState
-step dt = return . enemiesLogic . processInput . incrementTime
+step :: Time -> GameState -> GameState
+step dt = enemiesLogic . processInput . incrementTime dt
 
-incrementTime :: GameState -> GameState
-incrementTime = id
+incrementTime :: Time -> GameState -> GameState
+incrementTime _ = id
 processInput :: GameState -> GameState -- keyboard wordt hier verwerkt
 processInput = id
 enemiesLogic :: GameState -> GameState
 enemiesLogic = id
 
 -- | Handle user input
-input :: Event -> GameState -> IO GameState
-input e gs = return (inputKey e gs)
+input :: Event -> GameState -> GameState
+input e gs = inputKey e gs
 
 inputKey :: Event -> GameState -> GameState
 inputKey (EventKey (SpecialKey KeyUp) Down _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs ('u' : keylist)
@@ -55,7 +54,7 @@ updateGameState (GameState player keylist enemies time paused) t dy = (GameState
 removeItem :: (Eq a) => a -> [a] -> [a]
 removeItem _ []                 = []
 removeItem x (y:ys) | x == y    = removeItem x ys
-                    | otherwise = y : removeItem x ys
+                    | otherwise = y : removeItem x ys -- todo: kan korter
 -- Source: https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell
 
 movePlayer :: GameState -> CoordY -> GameState
