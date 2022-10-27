@@ -25,8 +25,6 @@ view screenSize wallpaperImg playerImg alienImg (GameState Player { pos = pos } 
     : []
   )
 
-test
-
 viewText :: (Show a) => Coords -> Float -> Color -> a -> Picture
 viewText coords size c = translate (x coords) (y coords) . scale size size . color c . Text . show
 
