@@ -3,15 +3,15 @@
 module Controller where
 
 import Model
-import Graphics.Gloss
-import Graphics.Gloss.Interface.IO.Game
---import System.Random
+import Graphics.Gloss.Interface.IO.Game hiding (rotate)
+import SupportiveFunctions
+import System.Random
 
 pace = 5
 
 -- | Handle one iteration of the game
 step :: Time -> GameState -> GameState
-step dt = enemiesLogic . incrementTime dt . processInput
+step dt = checkCollisions . enemiesLogic dt . playerLogic . processInput . incrementTime dt
 
 incrementTime :: Time -> GameState -> GameState
 incrementTime dt gs = gs { t = t gs + dt }
@@ -23,20 +23,33 @@ processInput gs@GameState { keyList = kl, player = p}
    | 'r' `elem` kl = gs { player = shoot p }
    | otherwise = gs
 
-enemiesLogic :: GameState -> GameState
-enemiesLogic = id
+playerLogic :: GameState -> GameState
+playerLogic = id
+
+enemiesLogic :: Time -> GameState -> GameState
+enemiesLogic dt gs = foldl (`applyEnemyLogic` dt) gs $ zip (enemies gs) [0..] -- zipping gives applyEnemyLogic both the enemy and its index in the list
+
+checkCollisions :: GameState -> GameState
+checkCollisions = id
+
+applyEnemyLogic :: GameState -> Time -> (Enemy, Int) -> GameState
+applyEnemyLogic gs dt (e@Astroid {}, i) = updateEnemyAt i gs $ rotate (move e dt (-speed e) 0) (8 * dt)
+applyEnemyLogic gs dt (e@Alien {},   i) = updateEnemyAt i gs $ move e dt (-speed e) $ fst $ uniformR (-1, 1) (rng gs)
+
+updateEnemyAt :: Int -> GameState -> Enemy -> GameState -- replaces the enemy at the given index in the list of enemies in the gs, with a new value
+updateEnemyAt i gs enemy = gs { enemies = replaceAt i enemy (enemies gs) }
 
 -- | Handle user input
 input :: Event -> GameState -> GameState
 input e gs = inputKey e gs
 
 inputKey :: Event -> GameState -> GameState
-inputKey (EventKey (SpecialKey KeyUp) Down _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs ('u' : keylist)
-inputKey (EventKey (SpecialKey KeyUp) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem 'u' keylist)
-inputKey (EventKey (SpecialKey KeyDown) Down _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs ('d' : keylist)
-inputKey (EventKey (SpecialKey KeyDown) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem 'd' keylist)
-inputKey (EventKey (SpecialKey KeyRight) Down _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs ('r' : keylist)
-inputKey (EventKey (SpecialKey KeyRight) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem 'r' keylist)
+inputKey (EventKey (SpecialKey KeyUp) Down _ _) gs@(GameState _ keylist _ _ _ _) = updateKeyList gs ('u' : keylist)
+inputKey (EventKey (SpecialKey KeyUp) Up _ _) gs@(GameState _ keylist _ _ _ _) = updateKeyList gs (removeItem 'u' keylist)
+inputKey (EventKey (SpecialKey KeyDown) Down _ _) gs@(GameState _ keylist _ _ _ _) = updateKeyList gs ('d' : keylist)
+inputKey (EventKey (SpecialKey KeyDown) Up _ _) gs@(GameState _ keylist _ _ _ _) = updateKeyList gs (removeItem 'd' keylist)
+inputKey (EventKey (SpecialKey KeyRight) Down _ _) gs@(GameState _ keylist _ _ _ _) = updateKeyList gs ('r' : keylist)
+inputKey (EventKey (SpecialKey KeyRight) Up _ _) gs@(GameState _ keylist _ _ _ _) = updateKeyList gs (removeItem 'r' keylist)
 inputKey (EventKey (SpecialKey KeySpace) Down _ _) gs = gs { paused = not (paused gs) }
 inputKey _ gs = gs
 
