@@ -6,6 +6,7 @@ module View where
 
 import Graphics.Gloss hiding (display) -- conflicts with Model.Entity.display
 import Model
+import SupportiveFunctions
 
 type ScreenSize = (Int, Int)
 
@@ -30,7 +31,7 @@ viewText coords size c = translate (x coords) (y coords) . scale size size . col
 
 viewStats :: Time -> Paused -> Picture
 viewStats t paused = pictures [
-  viewText timePos 0.3 white t,
+  viewText timePos 0.3 white (roundToDecimals t 2),
   viewText pausedPos 0.3 white paused]
 
 viewPauseMenuIfPaused :: Paused -> ScreenSize -> Picture

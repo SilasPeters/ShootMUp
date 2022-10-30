@@ -10,18 +10,21 @@ import Graphics.Gloss.Interface.IO.Game
 pace = 5
 
 -- | Handle one iteration of the game
-step :: Time -> GameState -> IO GameState
-step dt gs = (return . enemiesLogic . processInput . incrementTime dt) gs
+step :: Time -> GameState -> GameState
+step dt = enemiesLogic . incrementTime dt . processInput
 
 incrementTime :: Time -> GameState -> GameState
-incrementTime t gs  = gs { time = (floor((time+t) * 10^2)/10^2) }
+incrementTime dt gs = gs { t = t gs + dt }
 
 processInput :: GameState -> GameState -- keyboard wordt hier verwerkt
-processInput gs 
-   | 'u' `elem` keylist = return gs { player = (move player 0 pace) }
-   | 'd' `elem` keylist = return gs { player = (move player 0 (-pace)) }
---   | 'r' `elem` keylist = return (GameState (shoot player) keylist enemies time paused)
---   | otherwise = return (GameState player keylist enemies time paused) 
+processInput gs@GameState { keyList = kl, player = p}
+   | 'u' `elem` kl = gs { player = move p 0 pace }
+   | 'd' `elem` kl = gs { player = move p 0 (-pace) }
+   | 'r' `elem` kl = gs { player = shoot p }
+   | otherwise = gs
+
+enemiesLogic :: GameState -> GameState
+enemiesLogic = id
 
 -- | Handle user input
 input :: Event -> GameState -> GameState
@@ -34,20 +37,20 @@ inputKey (EventKey (SpecialKey KeyDown) Down _ _) gs@(GameState _ keylist _ _ _)
 inputKey (EventKey (SpecialKey KeyDown) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem 'd' keylist)
 inputKey (EventKey (SpecialKey KeyRight) Down _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs ('r' : keylist)
 inputKey (EventKey (SpecialKey KeyRight) Up _ _) gs@(GameState _ keylist _ _ _) = updateKeyList gs (removeItem 'r' keylist)
-inputKey (EventKey (SpecialKey KeySpace) Down _ _) gs = gs { paused = (not(paused)) }
+inputKey (EventKey (SpecialKey KeySpace) Down _ _) gs = gs { paused = not (paused gs) }
 inputKey _ gs = gs
 
 updateKeyList :: GameState -> [Char] -> GameState
-updateKeyList gs keys = gs { keylist = keys } 
+updateKeyList gs keys = gs { keyList = keys }
 
-updateGameState :: GameState -> CoordY -> GameState
-updateGameState (GameState player keylist enemies time paused) dy = (GameState (move player 0 dy) keylist enemies time paused)
+--updateGameState :: GameState -> CoordY -> GameState
+--updateGameState (GameState player keylist enemies time paused) dy = GameState (move player 0 dy) keylist enemies time paused
 
 removeItem :: (Eq a) => a -> [a] -> [a]
 removeItem _ []                 = []
 removeItem x (y:ys) | x == y    = removeItem x ys
-                    | otherwise = y : removeItem x ys
+                    | otherwise = y : removeItem x ys -- todo: kan korter
 -- Source: https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell
 
 movePlayer :: GameState -> CoordY -> GameState
-movePlayer gs  dy = gs { player = (move player 0 dy) }
+movePlayer gs dy = gs { player = move (player gs) 0 dy }

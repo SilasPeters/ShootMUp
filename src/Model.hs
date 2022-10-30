@@ -41,10 +41,13 @@ class ShootingEntity e where
 -- Instances and commonalities
 instance Entity Player where
   move p@Player { pos = pos } _ dy = p { pos = pos { y = clamp (-shipMaxY, shipMaxY) (y pos + dy) } }
-
 instance Entity Enemy where
   move a@Astroid { pos = pos } dx dy = a { pos = pos + Coords dx dy}
   move a@Alien   { pos = pos } dx dy = a { pos = pos + Coords dx dy}
+
+instance ShootingEntity Player where
+  shoot = id
+
 
 applyEnemyLogic :: GameState -> Enemy -> GameState
 applyEnemyLogic gs Astroid {} = gs
