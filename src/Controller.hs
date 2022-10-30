@@ -7,19 +7,17 @@ import Graphics.Gloss.Interface.IO.Game hiding (rotate)
 import SupportiveFunctions
 import System.Random
 
-pace = 5
-
 -- | Handle one iteration of the game
 step :: Time -> GameState -> GameState
-step dt = checkCollisions . enemiesLogic dt . playerLogic . processInput . incrementTime dt
+step dt = checkCollisions . enemiesLogic dt . playerLogic . processInput dt . incrementTime dt
 
 incrementTime :: Time -> GameState -> GameState
-incrementTime dt gs = gs { t = t gs + dt }
+incrementTime dt gs = if not $ paused gs then gs { t = t gs + dt } else gs
 
-processInput :: GameState -> GameState -- keyboard wordt hier verwerkt
-processInput gs@GameState { keyList = kl, player = p}
-   | 'u' `elem` kl = gs { player = move p 0 pace }
-   | 'd' `elem` kl = gs { player = move p 0 (-pace) }
+processInput :: Time -> GameState -> GameState -- keyboard wordt hier verwerkt
+processInput dt gs@GameState { keyList = kl, player = p}
+   | 'u' `elem` kl = gs { player = move p dt 0 (pace p) }
+   | 'd' `elem` kl = gs { player = move p dt 0 (-pace p) }
    | 'r' `elem` kl = gs { player = shoot p }
    | otherwise = gs
 
@@ -66,4 +64,4 @@ removeItem x (y:ys) | x == y    = removeItem x ys
 -- Source: https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell
 
 movePlayer :: GameState -> CoordY -> GameState
-movePlayer gs dy = gs { player = move (player gs) 0 dy }
+movePlayer gs dy = gs { player = move (player gs) (t gs) 0 dy }

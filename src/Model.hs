@@ -30,7 +30,7 @@ times :: Coords -> Float -> Coords
 
 -- New data types
 data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], t :: Time, paused :: Paused, rng :: StdGen }
-newtype Player = Player    { pos :: Coords }
+data Player    = Player    { pos :: Coords, pace :: Speed }
 data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed } | Alien { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed, health :: Health }
 
 -- Classes
@@ -50,7 +50,7 @@ class ShootingEntity e where
 -- Instances and commonalities
 instance Entity Player where
   move p@Player { pos = pos } dt _ dy = p { pos = pos { y = newClampedY } }
-    where newClampedY = clamp (-shipMaxY, shipMaxY) (y pos + dy) * dt
+    where newClampedY = clamp (-shipMaxY, shipMaxY) (y pos + (dy * dt))
   getPos = pos
   imgKey = const "player"
 instance Entity Enemy where
@@ -59,8 +59,8 @@ instance Entity Enemy where
   rotate e@Astroid { rotation = rotation } degree = e { rotation = rotation + degree}
   rotate e@Alien   { rotation = rotation } degree = e { rotation = rotation + degree}
   getPos = pos
-  imgKey Alien  {} = "alien"
-  imgKey Astroid{} = "astroid"
+  imgKey Alien   {} = "alien"
+  imgKey Astroid {} = "astroid"
 
 instance ShootingEntity Player where
   shoot = id
