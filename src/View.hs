@@ -31,19 +31,19 @@ view screenSize textures (GameState Player { pos = playerPos } keylist enemies t
 viewGeneric :: Coords -> Size -> Rotation -> Picture -> Picture
 viewGeneric (Coords x y) size rotation = translate x y . rotate rotation . scale size size
 
-viewText :: (Show a) => Coords -> Float -> Color -> a -> Picture
-viewText coords size c = color c . viewGeneric coords size 0 . Text . show
+viewText :: Coords -> Float -> Color -> String -> Picture
+viewText coords size c = color c . viewGeneric coords size 0 . Text
 
 viewStats :: Time -> Paused -> Picture
 viewStats t paused = pictures [
-  viewText timePos 0.3 white (roundToDecimals t 2),
-  viewText pausedPos 0.3 white paused]
+  viewText timePos 0.3 white $ show (roundToDecimals t 2),
+  viewText pausedPos 0.3 white $ show paused]
 
 viewPauseMenuIfPaused :: Paused -> ScreenSize -> Picture
 viewPauseMenuIfPaused False _      = Blank
 viewPauseMenuIfPaused _     (w, h) = pictures [
   color (makeColor 0 0 0 0.6) $ rectangleSolid (fromIntegral w) (fromIntegral h), -- Darken screen
-  viewText (center (fromIntegral w / 2) 100) 1 white "paused"]
+  viewText (center (fromIntegral w / 2) 100) 1 white "Paused"]
 
 center :: Float -> Float -> Coords
 center w h = Coords (-w / 2) (-h / 2)
