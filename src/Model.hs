@@ -36,7 +36,7 @@ times :: Coords -> Float -> Coords
 data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, bullets :: [Bullet], rng :: StdGen }
 data Player    = Player    { pos :: Coords, pace :: Speed }
 data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed } | Alien { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed, health :: Health }
-data Bullet    = Bullet { pos :: Coords, bulletspeed :: Speed, direction :: Direction}
+data Bullet    = Bullet    { pos :: Coords, bulletspeed :: Speed, direction :: Direction}
 
 -- Classes
 class Entity e where
@@ -59,7 +59,7 @@ instance Entity Player where
     where newClampedY = clamp (-shipMaxY, shipMaxY) (y pos + (dy * dt))
   getPos = pos
   imgKey = const "player"
-  
+
 instance Entity Enemy where
   move e@Astroid { pos = pos } dt dx dy = e { pos = pos + Coords (dx * dt) (dy * dt)}
   move e@Alien   { pos = pos } dt dx dy = e { pos = pos + Coords (dx * dt) (dy * dt)}
@@ -69,18 +69,18 @@ instance Entity Enemy where
   getSize = size
   imgKey Alien   {} = "alien"
   imgKey Astroid {} = "astroid"
-  
+
 instance Collidable Player where
-  collidesWithPlayer Player { pos = Coords shipx shipy } e = 
-    let ex = (x (getPos e))
-        ey = (y (getPos e)) 
-        size = (getSize e) in
-    ex - size < shipx + shipWidth && (shipy - shipHeigth < ey + size && ey + size < shipy + shipHeigth ||  shipy + shipHeigth > ey - size && ey - size > shipy - shipHeigth)
-    
+  collidesWithPlayer Player { pos = Coords shipx shipy } e =
+    let ex = x (getPos e)
+        ey = y (getPos e)
+        size = getSize e in
+    ex - size < shipx + shipWidth && (shipy - shipHeigth < ey + size && ey + size < shipy + shipHeigth || shipy + shipHeigth > ey - size && ey - size > shipy - shipHeigth)
+
 --instance Collidable Enemy where
 --  onCollide e@Astroid = id
 --  onCollide e@Alien = id
-  
+
 
 instance ShootingEntity Player where
   shoot = id

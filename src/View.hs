@@ -21,7 +21,7 @@ view screenSize textures (GameState Player { pos = playerPos } keylist enemies t
   : map viewEnemy enemies                      -- Draw enemies
  ++ viewStats time paused                      -- Draw stats
   : viewPauseMenuIfPaused paused screenSize    -- Draw pause menu if paused
-  : viewGameOver alive screenSize
+  : viewGameOverIfPlayerDead alive screenSize
   : []
   )
   where
@@ -44,11 +44,11 @@ viewPauseMenuIfPaused :: Paused -> ScreenSize -> Picture
 viewPauseMenuIfPaused False _      = Blank
 viewPauseMenuIfPaused _     (w, h) = pictures [
   color (makeColor 0 0 0 0.6) $ rectangleSolid (fromIntegral w) (fromIntegral h), -- Darken screen
-  viewText (center (fromIntegral w / 2) 100) 1 white "Paused"]
+  viewText (center (fromIntegral w / 1.5) 100) 1 white "Paused"]
   
-viewGameOver :: Alive -> ScreenSize -> Picture
-viewGameOver True _      = Blank
-viewGameOver _    (w, h) = pictures [
+viewGameOverIfPlayerDead :: Alive -> ScreenSize -> Picture
+viewGameOverIfPlayerDead True _      = Blank
+viewGameOverIfPlayerDead _    (w, h) = pictures [
   color (makeColor 0 0 0 0.6) $ rectangleSolid (fromIntegral w) (fromIntegral h), -- Darken screen
   viewText (center (fromIntegral w / 2) 100) 1 white "Game Over!"]
 
