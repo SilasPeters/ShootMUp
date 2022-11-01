@@ -15,12 +15,13 @@ timePos   = Coords (-490) 250
 pausedPos = Coords (-280) 250
 
 view :: ScreenSize -> [(String, Picture)] -> GameState -> Picture
-view screenSize textures (GameState Player { pos = playerPos } keylist enemies time paused rng) = pictures (
+view screenSize textures (GameState Player { pos = playerPos } keylist enemies time paused alive bullets rng) = pictures (
  getTexture "wallpaper"                        -- Draw the background
   : translate' playerPos (getTexture "player") -- Draw player
   : map viewEnemy enemies                      -- Draw enemies
  ++ viewStats time paused                      -- Draw stats
   : viewPauseMenuIfPaused paused screenSize    -- Draw pause menu if paused
+  : viewGameOver alive screenSize
   : []
   )
   where
@@ -44,6 +45,12 @@ viewPauseMenuIfPaused False _      = Blank
 viewPauseMenuIfPaused _     (w, h) = pictures [
   color (makeColor 0 0 0 0.6) $ rectangleSolid (fromIntegral w) (fromIntegral h), -- Darken screen
   viewText (center (fromIntegral w / 2) 100) 1 white "Paused"]
+  
+viewGameOver :: Alive -> ScreenSize -> Picture
+viewGameOver True _      = Blank
+viewGameOver _    (w, h) = pictures [
+  color (makeColor 0 0 0 0.6) $ rectangleSolid (fromIntegral w) (fromIntegral h), -- Darken screen
+  viewText (center (fromIntegral w / 2) 100) 1 white "Game Over!"]
 
 center :: Float -> Float -> Coords
 center w h = Coords (-w / 2) (-h / 2)
