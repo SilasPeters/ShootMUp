@@ -44,13 +44,13 @@ viewPauseMenuIfPaused :: Paused -> ScreenSize -> Picture
 viewPauseMenuIfPaused False _      = Blank
 viewPauseMenuIfPaused _     (w, h) = pictures [
   color (makeColor 0 0 0 0.6) $ rectangleSolid (fromIntegral w) (fromIntegral h), -- Darken screen
-  viewText (center (fromIntegral w / 1.5) 100) 1 white "Paused"]
+  viewText (center (fromIntegral w / 2) 100) 1 white "Paused"]
   
 viewGameOverIfPlayerDead :: Alive -> ScreenSize -> Picture
 viewGameOverIfPlayerDead True _      = Blank
 viewGameOverIfPlayerDead _    (w, h) = pictures [
   color (makeColor 0 0 0 0.6) $ rectangleSolid (fromIntegral w) (fromIntegral h), -- Darken screen
-  viewText (center (fromIntegral w / 2) 100) 1 white "Game Over!"]
+  viewText (center 750 100) 1 white "Game Over!"]
 
 center :: Float -> Float -> Coords
 center w h = Coords (-w / 2) (-h / 2)

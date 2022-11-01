@@ -7,18 +7,21 @@ import Graphics.Gloss.Interface.Pure.Game hiding (rotate)
 import SupportiveFunctions
 import System.Random
 
+
 -- | Handle one iteration of the game
 step :: Time -> GameState -> GameState
-step dt = checkCollisions . enemiesLogic dt . playerLogic . processInput dt . incrementTime dt
+step dt gs = if skipFrame then gs else (checkCollisions . enemiesLogic dt . playerLogic . processInput dt . incrementTime dt) gs
+   where skipFrame = paused gs || not (alive gs) -- do not perform logic if the game is paused or the game is over
 
 incrementTime :: Time -> GameState -> GameState
-incrementTime dt gs = if not $ paused gs then gs { t = t gs + dt } else gs
+incrementTime dt gs = gs { t = t gs + dt }
 
 processInput :: Time -> GameState -> GameState -- keyboard wordt hier verwerkt
-processInput dt gs@GameState { keyList = kl, player = p}
+processInput dt gs@GameState { keyList = kl, player = p }
    | 'u' `elem` kl = gs { player = move p dt 0 (pace p) }
    | 'd' `elem` kl = gs { player = move p dt 0 (-pace p) }
    | 'r' `elem` kl = gs { player = shoot p }
+   -- spacebar key is handled by inputKey TODO: make this more obvious
    | otherwise = gs
 
 playerLogic :: GameState -> GameState
@@ -37,19 +40,15 @@ applyEnemyLogic gs dt (e@Alien {},   i) = updateEnemyAt i gs $ move e dt (-speed
 updateEnemyAt :: Int -> GameState -> Enemy -> GameState -- replaces the enemy at the given index in the list of enemies in the gs, with a new value
 updateEnemyAt i gs enemy = gs { enemies = replaceAt i enemy (enemies gs) }
 
--- | Handle user input
 input :: Event -> GameState -> GameState
-input e gs = inputKey e gs
-
-inputKey :: Event -> GameState -> GameState
-inputKey (EventKey (SpecialKey KeyUp) Down _ _) gs = gs { keyList = 'u' : keyList gs}
-inputKey (EventKey (SpecialKey KeyUp) Up _ _) gs = gs {keyList = removeItem 'u' (keyList gs)}
-inputKey (EventKey (SpecialKey KeyDown) Down _ _) gs = gs { keyList = 'd' : keyList gs}
-inputKey (EventKey (SpecialKey KeyDown) Up _ _) gs = gs {keyList = removeItem 'd' (keyList gs)}
-inputKey (EventKey (SpecialKey KeyRight) Down _ _) gs = gs { keyList = 'r' : keyList gs}
-inputKey (EventKey (SpecialKey KeyRight) Up _ _) gs = gs {keyList = removeItem 'r' (keyList gs)}
-inputKey (EventKey (SpecialKey KeySpace) Down _ _) gs = gs { paused = not (paused gs) }
-inputKey _ gs = gs
+input (EventKey (SpecialKey KeyUp)    Down _ _) gs = gs { keyList = 'u' : keyList gs}
+input (EventKey (SpecialKey KeyUp)    Up   _ _) gs = gs { keyList = removeItem 'u' (keyList gs)}
+input (EventKey (SpecialKey KeyDown)  Down _ _) gs = gs { keyList = 'd' : keyList gs}
+input (EventKey (SpecialKey KeyDown)  Up   _ _) gs = gs { keyList = removeItem 'd' (keyList gs)}
+input (EventKey (SpecialKey KeyRight) Down _ _) gs = gs { keyList = 'r' : keyList gs}
+input (EventKey (SpecialKey KeyRight) Up   _ _) gs = gs { keyList = removeItem 'r' (keyList gs)}
+input (EventKey (SpecialKey KeySpace) Down _ _) gs = gs { paused  = not (paused gs) }
+input _ gs = gs
 
 removeItem :: (Eq a) => a -> [a] -> [a]
 removeItem _ []                 = []
