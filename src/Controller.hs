@@ -20,7 +20,7 @@ processInput :: Time -> GameState -> GameState -- keyboard wordt hier verwerkt
 processInput dt gs@GameState { keyList = kl, player = p }
    | 'u' `elem` kl = gs { player = move p dt 0 (pace p) }
    | 'd' `elem` kl = gs { player = move p dt 0 (-pace p) }
-   | 'r' `elem` kl = gs { player = shoot p }
+   | 'r' `elem` kl = shoot p gs
    -- spacebar key is handled by inputKey TODO: make this more obvious
    | otherwise = gs
 

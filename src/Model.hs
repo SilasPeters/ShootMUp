@@ -48,10 +48,10 @@ class Entity e where
 
 class Collidable e where
   collidesWithPlayer :: (Entity m) => e -> m -> Bool -- of zo
-  onCollide          :: e -> e -> Bool
+  onCollide          :: e -> Bullet -> Bool
 
 class ShootingEntity e where
-  shoot :: e -> e
+  shoot :: e -> GameState -> GameState
 
 -- Instances and commonalities
 instance Entity Player where
@@ -69,18 +69,27 @@ instance Entity Enemy where
   getSize = size
   imgKey Alien   {} = "alien"
   imgKey Astroid {} = "astroid"
-
+  
+instance Entity Bullet where
+  getPos = pos
+  
 instance Collidable Player where
   collidesWithPlayer Player { pos = Coords shipx shipy } e =
     let ex = x (getPos e)
         ey = y (getPos e)
         size = getSize e in
     ex - size < shipx + shipWidth && (shipy - shipHeigth < ey + size && ey + size < shipy + shipHeigth || shipy + shipHeigth > ey - size && ey - size > shipy - shipHeigth)
+  onCollide Player { pos = Coords shipx shipy } Bullet { pos = Coords bx by} = bx < shipx + shipWidth && (shipy - shipHeigth < by && by < shipy + shipHeigth || shipy + shipHeigth > by && by > shipy - shipHeigth)
 
---instance Collidable Enemy where
---  onCollide e@Astroid = id
---  onCollide e@Alien = id
-
+instance Collidable Enemy where
+  onCollide Astroid { pos = Coords ax ay, size = size } Bullet { pos = Coords bx by} = bx < ax + size && (ay - size < by && by < ay + size || ay + size > by && by > ay - size)
+  onCollide Alien { pos = Coords ax ay, size = size } Bullet { pos = Coords bx by} = bx < ax + size && (ay - size < by && by < ay + size || ay + size > by && by > ay - size)
 
 instance ShootingEntity Player where
-  shoot = id
+  shoot p@Player {pos = pos} gs = gs { bullets = (Bullet {pos = pos, bulletspeed = 10, direction = (10, 0)}) : bullets gs}
+  
+instance ShootingEntity Enemy where
+  shoot e@Alien {pos = Coords alienx alieny} gs@(GameState Player { pos = playerPos } keylist enemies time paused alive bullets rng) = 
+    let shipx = x playerPos 
+        shipy = y playerPos in
+    gs { bullets = (Bullet {pos = Coords alienx alieny, bulletspeed = 10, direction = (alienx -shipx, alieny - shipy)}) : bullets}

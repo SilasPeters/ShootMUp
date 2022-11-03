@@ -27,6 +27,7 @@ imgWallpaper = "wallpaper.bmp" -- Source: self made in paint
 imgPlayer    = "spaceship.bmp" -- todo: mention source
 imgAlien     = "alien.bmp"     -- Source: https://clipartcraft.com/explore/spaceship-clipart-pixel/
 imgAstroid   = "astroid.bmp"   -- Source: https://freepngimg.com/png/33922-asteroid
+imgBullet    = "bullet.bmp"
 
 main :: IO ()
 main = do
@@ -34,6 +35,7 @@ main = do
   playerImg    <- loadBMP imgPlayer
   astroidImg   <- loadBMP imgAstroid
   alienImg     <- loadBMP imgAlien
+  bulletImg    <- loadBMP imgBullet
   -- all IO is loaded, now run the game in a pure environment
   play (InWindow "Shoot'm up" screenSize (0, 0)) -- Or FullScreen
         white              -- Background color
@@ -42,6 +44,7 @@ main = do
         (view screenSize [("wallpaper", wallpaperImg),
                           ("player",    playerImg),
                           ("astroid",   astroidImg),
-                          ("alien",     alienImg)])  -- View function
+                          ("alien",     alienImg),  -- View function
+                          ("bullet",    bulletImg)])  -- View function
         input              -- Event function
         step               -- Step function

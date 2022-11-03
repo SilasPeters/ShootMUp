@@ -20,7 +20,8 @@ view screenSize textures (GameState Player { pos = playerPos } keylist enemies t
   : translate' playerPos (getTexture "player") -- Draw player
   : map viewEnemy enemies                      -- Draw enemies
  ++ viewStats time paused                      -- Draw stats
-  : viewPauseMenuIfPaused paused screenSize    -- Draw pause menu if paused
+  : map (\b -> translate' (getPos b) (getTexture "bullet")) bullets
+ ++ viewPauseMenuIfPaused paused screenSize    -- Draw pause menu if paused
   : viewGameOverIfPlayerDead alive screenSize
   : []
   )
