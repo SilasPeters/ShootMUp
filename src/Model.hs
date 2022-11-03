@@ -35,7 +35,7 @@ times :: Coords -> Float -> Coords
 
 -- New data types
 data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, rng :: StdGen }
-data Player    = Player    { pos :: Coords, pace :: Speed }
+data Player    = Player    { pos :: Coords, size :: Size, pace :: Speed }
 data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed }
                | Alien     { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed, health :: Health }
                | Bullet    { pos :: Coords, rotation :: Rotation, size :: Size, bulletspeed :: Speed, direction :: Direction}
@@ -61,13 +61,16 @@ instance Entity Player where
   move p@Player { pos = pos } dt _ dy = p { pos = pos { y = newClampedY } }
     where newClampedY = clamp (-shipMaxY, shipMaxY) (y pos + (dy * dt))
   getPos = pos
+  getSize = size
   imgKey = const "player"
 
 instance Entity Enemy where
   move e@Astroid { pos = pos } dt dx dy = e { pos = pos + Coords (dx * dt) (dy * dt)}
   move e@Alien   { pos = pos } dt dx dy = e { pos = pos + Coords (dx * dt) (dy * dt)}
+  move e@Bullet  { pos = pos } dt dx dy = e { pos = pos + Coords (dx * dt) (dy * dt)}
   rotate e@Astroid { rotation = rotation } degree = e { rotation = rotation + degree}
   rotate e@Alien   { rotation = rotation } degree = e { rotation = rotation + degree}
+  rotate e@Bullet  { rotation = rotation } degree = e { rotation = rotation + degree}
   getPos = pos
   getSize = size
   getRotation = rotation

@@ -12,7 +12,7 @@ import System.Random
 
 screenSize = (1000, 600)
 initialState = GameState
-  (Player (Coords (-350) 0) 500)   -- player
+  (Player (Coords (-350) 0) 1 500)   -- player
   []                               -- keyList
   [Alien   { pos = Coords 300 100,    rotation = 0, size = 1, speed = fst $ uniformR (10, 60) (mkStdGen 10), health = 1 },
    Astroid { pos = Coords 300 (-100), rotation = 0, size = 1, speed = fst $ uniformR (10, 30) (mkStdGen 70) }]
