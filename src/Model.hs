@@ -50,7 +50,7 @@ class Entity e where
   imgKey      :: e -> String
 
 class Collidable e where
-  collidesWith :: (Entity m) => e -> [m] -> Maybe m -- probeert de eerste enemy of player te vinden (voeg de speler dus tijdelijk toe aan de lijst met enemies) waarmee deze entity collide. Moet entities van zijn eigen type uit de lijst filteren.
+  collidesWith :: (Entity m) => e -> m -> Bool -- probeert de eerste enemy of player te vinden (voeg de speler dus tijdelijk toe aan de lijst met enemies) waarmee deze entity collide. Moet entities van zijn eigen type uit de lijst filteren.
   onCollide    :: e -> GameState -> GameState -- wat deze entity doet als hij collide
 
 class ShootingEntity e where
@@ -76,20 +76,18 @@ instance Entity Enemy where
   imgKey Bullet  {} = "bullet"
   
 instance Collidable Player where
-  collidesWith e b = find (collides e) b where
-                       collides e x = let (Coords ex ey) = getPos e
-                                          (Coords bx by) = getPos x
-                                          size = getSize e
-                                      in bx - size < ex + shipWidth && (ey - shipHeigth < by + size && by + size < ey + shipHeigth || ey + shipHeigth > by - size && by - size > ey - shipHeigth)
+  collidesWith e o = let (Coords ex ey) = getPos e
+                         (Coords ox oy) = getPos o
+                         osize = getSize o
+                     in ox - osize < ex + shipWidth && (ey - shipHeigth < oy + osize && oy + osize < ey + shipHeigth || ey + shipHeigth > oy - osize && oy - osize > ey - shipHeigth)
   onCollide _ gs = gs { alive = False }
 
 instance Collidable Enemy where
-  collidesWith e b = find (collides e) b where
-                       collides e x = let (Coords ex ey) = getPos e
-                                          (Coords bx by) = getPos x
-                                          esize = getSize e
-                                          bsize = getSize x
-                                      in bx + bsize < ex + esize && (ey - esize < by + bsize && by + bsize < ey + esize || ey + esize > by - bsize && by - bsize > ey - esize)
+  collidesWith e o = let (Coords ex ey) = getPos e
+                         (Coords ox oy) = getPos o
+                         esize = getSize e
+                         osize = getSize o
+                     in ox + osize < ex + esize && (ey - esize < oy + osize && oy + osize < ey + esize || ey + esize > oy - osize && oy - osize > ey - esize)
   onCollide _ gs = gs
 
 instance ShootingEntity Player where
