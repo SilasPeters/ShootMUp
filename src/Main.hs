@@ -20,7 +20,6 @@ initialState = GameState
   0                            -- elapsed time
   False                        -- paused
   True                         -- alive
-  []                           -- bullets
   (mkStdGen 70)                -- Random Number Generator
 
 imgWallpaper = "wallpaper.bmp" -- Source: self made in paint

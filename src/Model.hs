@@ -33,22 +33,24 @@ times :: Coords -> Float -> Coords
 (Coords x y) `times` n = Coords (x * n) (y * n)
 
 -- New data types
-data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, bullets :: [Bullet], rng :: StdGen }
+data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, rng :: StdGen }
 data Player    = Player    { pos :: Coords, pace :: Speed }
-data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed } | Alien { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed, health :: Health }
-data Bullet    = Bullet    { pos :: Coords, bulletspeed :: Speed, direction :: Direction}
+data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed }
+               | Alien     { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed, health :: Health }
+               | Bullet    { pos :: Coords, rotation :: Rotation, size :: Size, bulletspeed :: Speed, direction :: Direction}
 
 -- Classes
 class Entity e where
-  move   :: e -> Time -> CoordX -> CoordY -> e
-  rotate :: e -> Rotation -> e
-  getPos :: e -> Coords
-  getSize :: e -> Size
-  imgKey :: e -> String
+  move        :: e -> Time -> CoordX -> CoordY -> e
+  rotate      :: e -> Rotation -> e
+  getPos      :: e -> Coords
+  getSize     :: e -> Size
+  getRotation :: e -> Rotation
+  imgKey      :: e -> String
 
 class Collidable e where
-  collidesWithPlayer :: (Entity m) => e -> m -> Bool -- of zo
-  onCollide          :: e -> Bullet -> Bool
+  collidesWith :: (Entity m) => e -> [m] -> Maybe m -- probeert de eerste enemy of player te vinden (voeg de speler dus tijdelijk toe aan de lijst met enemies) waarmee deze entity collide. Moet entities van zijn eigen type uit de lijst filteren.
+  onCollide    :: e -> GameState -> GameState -- wat deze entity doet als hij collide
 
 class ShootingEntity e where
   shoot :: e -> GameState -> GameState
@@ -67,29 +69,30 @@ instance Entity Enemy where
   rotate e@Alien   { rotation = rotation } degree = e { rotation = rotation + degree}
   getPos = pos
   getSize = size
+  getRotation = rotation
   imgKey Alien   {} = "alien"
   imgKey Astroid {} = "astroid"
-  
-instance Entity Bullet where
-  getPos = pos
+  imgKey Bullet  {} = "bullet"
   
 instance Collidable Player where
-  collidesWithPlayer Player { pos = Coords shipx shipy } e =
+  collidesWith Player { pos = Coords shipx shipy } e =
     let ex = x (getPos e)
         ey = y (getPos e)
-        size = getSize e in
-    ex - size < shipx + shipWidth && (shipy - shipHeigth < ey + size && ey + size < shipy + shipHeigth || shipy + shipHeigth > ey - size && ey - size > shipy - shipHeigth)
-  onCollide Player { pos = Coords shipx shipy } Bullet { pos = Coords bx by} = bx < shipx + shipWidth && (shipy - shipHeigth < by && by < shipy + shipHeigth || shipy + shipHeigth > by && by > shipy - shipHeigth)
+        size = getSize e
+    in ex - size < shipx + shipWidth && (shipy - shipHeigth < ey + size && ey + size < shipy + shipHeigth || shipy + shipHeigth > ey - size && ey - size > shipy - shipHeigth)
+  onCollide _ gs = gs { alive = False }
 
 instance Collidable Enemy where
-  onCollide Astroid { pos = Coords ax ay, size = size } Bullet { pos = Coords bx by} = bx < ax + size && (ay - size < by && by < ay + size || ay + size > by && by > ay - size)
-  onCollide Alien { pos = Coords ax ay, size = size } Bullet { pos = Coords bx by} = bx < ax + size && (ay - size < by && by < ay + size || ay + size > by && by > ay - size)
+  collidesWith e b = let (Coords bx by) = getPos b
+                         (Coords ex ey) = getPos e
+                         size = getSize e
+                     in bx < ex + size && (ey - size < by && by < ey + size || ey + size > by && by > ey - size)
 
 instance ShootingEntity Player where
-  shoot p@Player {pos = pos} gs = gs { bullets = (Bullet {pos = pos, bulletspeed = 10, direction = (10, 0)}) : bullets gs}
+  shoot p@Player {pos = pos} gs = gs { enemies = (Bullet {pos = pos { x = x pos + shipWidth + 10}, rotation = 0, size = 1, bulletspeed = 10, direction = (10, 0)}) : enemies gs}
   
 instance ShootingEntity Enemy where
-  shoot e@Alien {pos = Coords alienx alieny} gs@(GameState Player { pos = playerPos } keylist enemies time paused alive bullets rng) = 
+  shoot e@Alien {pos = Coords alienx alieny} gs@(GameState Player { pos = playerPos } keylist enemies time paused alive rng) = 
     let shipx = x playerPos 
         shipy = y playerPos in
-    gs { bullets = (Bullet {pos = Coords alienx alieny, bulletspeed = 10, direction = (alienx -shipx, alieny - shipy)}) : bullets}
+    gs { enemies = (Bullet {pos = Coords alienx alieny, rotation = 0, size = 1, bulletspeed = 10, direction = (alienx -shipx, alieny - shipy)}) : enemies}

@@ -36,6 +36,7 @@ checkCollisions gs = if any (collidesWithPlayer (player gs)) (enemies gs) then g
 applyEnemyLogic :: GameState -> Time -> (Enemy, Int) -> GameState
 applyEnemyLogic gs dt (e@Astroid {}, i) = updateEnemyAt i gs $ rotate (move e dt (-speed e) 0) (8 * dt)
 applyEnemyLogic gs dt (e@Alien {},   i) = updateEnemyAt i gs $ move e dt (-speed e) $ fst $ uniformR (-1, 1) (rng gs)
+applyEnemyLogic gs dt (e@Bullet {},   i) = gs
 
 updateEnemyAt :: Int -> GameState -> Enemy -> GameState -- replaces the enemy at the given index in the list of enemies in the gs, with a new value
 updateEnemyAt i gs enemy = gs { enemies = replaceAt i enemy (enemies gs) }

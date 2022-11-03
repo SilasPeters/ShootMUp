@@ -15,20 +15,19 @@ timePos   = Coords (-490) 250
 pausedPos = Coords (-280) 250
 
 view :: ScreenSize -> [(String, Picture)] -> GameState -> Picture
-view screenSize textures (GameState Player { pos = playerPos } keylist enemies time paused alive bullets rng) = pictures (
+view screenSize textures (GameState Player { pos = playerPos } keylist enemies time paused alive rng) = pictures (
  getTexture "wallpaper"                        -- Draw the background
   : translate' playerPos (getTexture "player") -- Draw player
   : map viewEnemy enemies                      -- Draw enemies
  ++ viewStats time paused                      -- Draw stats
-  : map (\b -> translate' (getPos b) (getTexture "bullet")) bullets
- ++ viewPauseMenuIfPaused paused screenSize    -- Draw pause menu if paused
+  : viewPauseMenuIfPaused paused screenSize    -- Draw pause menu if paused
   : viewGameOverIfPlayerDead alive screenSize
   : []
   )
   where
     translate' coords = translate (x coords) (y coords)
     getTexture        = fromJust . flip lookup textures
-    viewEnemy e       = viewGeneric (getPos e) (size e) (rotation e) (getTexture $ imgKey e)
+    viewEnemy e       = viewGeneric (getPos e) (getSize e) (getRotation e) (getTexture $ imgKey e)
 
 viewGeneric :: Coords -> Size -> Rotation -> Picture -> Picture
 viewGeneric (Coords x y) size rotation = translate x y . rotate rotation . scale size size
