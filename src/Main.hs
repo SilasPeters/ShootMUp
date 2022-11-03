@@ -23,10 +23,10 @@ initialState = GameState
   (mkStdGen 70)                -- Random Number Generator
 
 imgWallpaper = "wallpaper.bmp" -- Source: self made in paint
-imgPlayer    = "spaceship.bmp" -- todo: mention source
+imgPlayer    = "spaceship.bmp" -- Source: https://pixabay.com/nl/vectors/tekenfilm-ufo-ruimteschip-5181269/
 imgAlien     = "alien.bmp"     -- Source: https://clipartcraft.com/explore/spaceship-clipart-pixel/
 imgAstroid   = "astroid.bmp"   -- Source: https://freepngimg.com/png/33922-asteroid
-imgBullet    = "bullet.bmp"
+imgBullet    = "bullet.bmp"    -- Source: self made in paint
 
 main :: IO ()
 main = do

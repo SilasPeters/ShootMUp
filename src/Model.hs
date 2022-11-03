@@ -7,6 +7,7 @@ module Model where
 import Graphics.Gloss (Picture, Vector)
 import SupportiveFunctions
 import System.Random
+import Data.List
 
 shipMaxY = 220
 shipWidth = 100
@@ -75,18 +76,21 @@ instance Entity Enemy where
   imgKey Bullet  {} = "bullet"
   
 instance Collidable Player where
-  collidesWith Player { pos = Coords shipx shipy } e =
-    let ex = x (getPos e)
-        ey = y (getPos e)
-        size = getSize e
-    in ex - size < shipx + shipWidth && (shipy - shipHeigth < ey + size && ey + size < shipy + shipHeigth || shipy + shipHeigth > ey - size && ey - size > shipy - shipHeigth)
+  collidesWith e b = find (collides e) b where
+                       collides e x = let (Coords ex ey) = getPos e
+                                          (Coords bx by) = getPos x
+                                          size = getSize e
+                                      in bx - size < ex + shipWidth && (ey - shipHeigth < by + size && by + size < ey + shipHeigth || ey + shipHeigth > by - size && by - size > ey - shipHeigth)
   onCollide _ gs = gs { alive = False }
 
 instance Collidable Enemy where
-  collidesWith e b = let (Coords bx by) = getPos b
-                         (Coords ex ey) = getPos e
-                         size = getSize e
-                     in bx < ex + size && (ey - size < by && by < ey + size || ey + size > by && by > ey - size)
+  collidesWith e b = find (collides e) b where
+                       collides e x = let (Coords ex ey) = getPos e
+                                          (Coords bx by) = getPos x
+                                          esize = getSize e
+                                          bsize = getSize x
+                                      in bx + bsize < ex + esize && (ey - esize < by + bsize && by + bsize < ey + esize || ey + esize > by - bsize && by - bsize > ey - esize)
+  onCollide _ gs = gs
 
 instance ShootingEntity Player where
   shoot p@Player {pos = pos} gs = gs { enemies = (Bullet {pos = pos { x = x pos + shipWidth + 10}, rotation = 0, size = 1, bulletspeed = 10, direction = (10, 0)}) : enemies gs}
