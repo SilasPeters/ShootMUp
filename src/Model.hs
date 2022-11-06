@@ -78,20 +78,24 @@ instance Entity Enemy where
   imgKey Astroid {} = "astroid"
   imgKey Bullet  {} = "bullet"
   
+instance Eq Enemy where
+  x == y = x == y
+  x /= y = x /= y
+  
 instance Collidable Player where
   collidesWith e o = let (Coords ex ey) = getPos e
                          (Coords ox oy) = getPos o
                          osize = getSize o
-                     in ox - osize < ex + shipWidth && (ey - shipHeigth < oy + osize && oy + osize < ey + shipHeigth || ey + shipHeigth > oy - osize && oy - osize > ey - shipHeigth)
-  onCollide _ gs = gs { alive = False }
+                     in (ex - shipWidth < ox + osize && ox - osize < ex + shipWidth) && (ey - shipHeigth < oy + osize && oy + osize < ey + shipHeigth || ey + shipHeigth > oy - osize && oy - osize > ey - shipHeigth)
+  onCollide e gs = gs { alive = False }
 
 instance Collidable Enemy where
   collidesWith e o = let (Coords ex ey) = getPos e
                          (Coords ox oy) = getPos o
                          esize = getSize e
                          osize = getSize o
-                     in ox + osize < ex + esize && (ey - esize < oy + osize && oy + osize < ey + esize || ey + esize > oy - osize && oy - osize > ey - esize)
-  onCollide _ gs = gs
+                     in (ex - esize < ox + osize && ox - osize < ex + esize) && (ey - esize < oy + osize && oy + osize < ey + esize || ey + esize > oy - osize && oy - osize > ey - esize)
+  onCollide e gs = gs {enemies = removeItem e (enemies gs)}
 
 instance ShootingEntity Player where
   shoot p@Player {pos = pos} gs = gs { enemies = (Bullet {pos = pos { x = x pos + shipWidth + 10}, rotation = 0, size = 1, bulletspeed = 10, direction = (10, 0)}) : enemies gs}
@@ -101,3 +105,9 @@ instance ShootingEntity Enemy where
     let shipx = x playerPos 
         shipy = y playerPos in
     gs { enemies = (Bullet {pos = Coords alienx alieny, rotation = 0, size = 1, bulletspeed = 10, direction = (alienx -shipx, alieny - shipy)}) : enemies}
+    
+removeItem :: (Eq a) => a -> [a] -> [a]
+removeItem _ []                 = []
+removeItem x (y:ys) | x == y    = removeItem x ys
+                    | otherwise = y : removeItem x ys -- todo: kan korter
+-- Source: https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell

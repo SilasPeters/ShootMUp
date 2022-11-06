@@ -39,7 +39,6 @@ checkCollisions gs = let firstCollisionOfEnemy  = find (`collidesWith` player gs
                         _      -> case firstCollisionOfPlayer of
                            Just y -> onCollide y gs
                            _ -> gs
-
                      -- let collidables = player gs : enemies gs
                      --     firstCollision = find (`collidesWith` collidables) collidables -- only interprets first found collision, because handling one collision per frame is enough and otherwise gamestate has to be a state monad...
                      --  in onCollide firstCollision
@@ -63,9 +62,3 @@ input (EventKey (SpecialKey KeyRight) Down _ _) gs = gs { keyList = 'r' : keyLis
 input (EventKey (SpecialKey KeyRight) Up   _ _) gs = gs { keyList = removeItem 'r' (keyList gs)}
 input (EventKey (SpecialKey KeySpace) Down _ _) gs = gs { paused  = not (paused gs) }
 input _ gs = gs
-
-removeItem :: (Eq a) => a -> [a] -> [a]
-removeItem _ []                 = []
-removeItem x (y:ys) | x == y    = removeItem x ys
-                    | otherwise = y : removeItem x ys -- todo: kan korter
--- Source: https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell
