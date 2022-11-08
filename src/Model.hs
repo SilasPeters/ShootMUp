@@ -1,4 +1,5 @@
 {-#LANGUAGE DuplicateRecordFields#-}
+{-#LANGUAGE ExistentialQuantification#-}
 
 -- | This module contains the data types
 --   which represent the state of the game
@@ -8,6 +9,7 @@ import Graphics.Gloss (Picture, Vector)
 import SupportiveFunctions
 import System.Random
 import Data.List
+import Debug.Trace
 
 shipMaxY = 220
 shipWidth = 100
@@ -36,6 +38,8 @@ times :: Coords -> Float -> Coords
 (Coords x y) `times` n = Coords (x * n) (y * n)
 
 -- New data types
+--data CollidableType = forall a . Collidable a => CollidableType { entity :: a } -- aims to wrap players and enemies into a single list
+
 data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, rng :: StdGen }
 data Player    = Player    { pos :: Coords, size :: Size, pace :: Speed }
 data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed }
@@ -51,9 +55,17 @@ class Entity e where
   getRotation :: e -> Rotation
   imgKey      :: e -> String
 
-class Collidable e where
-  collidesWith :: (Entity m) => e -> m -> Bool -- probeert de eerste enemy of player te vinden (voeg de speler dus tijdelijk toe aan de lijst met enemies) waarmee deze entity collide. Moet entities van zijn eigen type uit de lijst filteren.
-  onCollide    :: e -> GameState -> GameState -- wat deze entity doet als hij collide
+class Entity e => Collidable e where
+  collidesWith :: (Entity m) => e -> m -> Bool
+  onCollide    :: e -> GameState -> GameState
+
+  collidesWith e o = let (Coords ex ey) = getPos e
+                         (Coords ox oy) = getPos o
+                         esize = getSize e
+                         osize = getSize o
+                      in (ex - esize < ox + osize && ox - osize < ex + esize)
+                      && (ey - esize < oy + osize && oy + osize < ey + esize
+                       || ey + esize > oy - osize && oy - osize > ey - esize)
 
 class ShootingEntity e where
   shoot :: e -> GameState -> GameState
@@ -82,21 +94,12 @@ instance Entity Enemy where
 
 instance Eq Enemy where
   a == b = getPos a == getPos b
-  
+
 instance Collidable Player where
-  collidesWith e o = let (Coords ex ey) = getPos e
-                         (Coords ox oy) = getPos o
-                         osize = getSize o
-                     in (ex - shipWidth < ox + osize && ox - osize < ex + shipWidth) && (ey - shipHeigth < oy + osize && oy + osize < ey + shipHeigth || ey + shipHeigth > oy - osize && oy - osize > ey - shipHeigth)
-  onCollide e gs = gs { alive = False }
+  onCollide e gs = trace "playerCollision" gs { alive = False }
 
 instance Collidable Enemy where
-  collidesWith e o = let (Coords ex ey) = getPos e
-                         (Coords ox oy) = getPos o
-                         esize = getSize e
-                         osize = getSize o
-                     in (ex - esize < ox + osize && ox - osize < ex + esize) && (ey - esize < oy + osize && oy + osize < ey + esize || ey + esize > oy - osize && oy - osize > ey - esize)
-  onCollide e gs = gs {enemies = removeItem e (enemies gs)}
+  onCollide e gs = trace "enemyCollision" gs { enemies = removeItem e (enemies gs) }
 
 instance ShootingEntity Player where
   shoot p@Player {pos = pos} gs = gs { enemies = (Bullet {pos = pos { x = x pos + shipWidth + 10}, rotation = 0, size = 1, bulletspeed = 10, direction = (10, 0)}) : enemies gs}
@@ -106,9 +109,3 @@ instance ShootingEntity Enemy where
     let shipx = x playerPos 
         shipy = y playerPos in
     gs { enemies = (Bullet {pos = Coords alienx alieny, rotation = 0, size = 1, bulletspeed = 10, direction = (alienx -shipx, alieny - shipy)}) : enemies}
-    
-removeItem :: (Eq a) => a -> [a] -> [a]
-removeItem _ []                 = []
-removeItem x (y:ys) | x == y    = removeItem x ys
-                    | otherwise = y : removeItem x ys -- todo: kan korter
--- Source: https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell
