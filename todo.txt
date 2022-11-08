@@ -1,0 +1,10 @@
+- Collisions
+- Enemeis spawnen
+- Enemy behavior
+
+- size hernoemen naar Scale
+- Size zelf teovoegen (width, height) (en gebruiken in collidesWith)
+
+- Animatie
+
+onCollide verplaatst Enemy / Speler naar nieuwe field in GS, namelijk DespawningEnemeis :: [Entity]. In de step methode moet dus een functie toegevoegd worden die elke despawningEnemy schaalt met 0.5X, en als de size dáárna < 0.01 dan haalt hij hem ook uit die lijst.
