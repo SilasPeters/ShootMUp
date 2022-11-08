@@ -15,7 +15,7 @@ timePos   = Coords (-490) 250
 pausedPos = Coords (-280) 250
 
 view :: ScreenSize -> [(String, Picture)] -> GameState -> Picture
-view screenSize textures (GameState Player { pos = playerPos } keylist enemies time paused alive rng) = pictures (
+view screenSize textures (GameState Player { pos = playerPos } keylist enemies despawningEnemies time paused alive rng) = pictures (
  getTexture "wallpaper"                        -- Draw the background
   : translate' playerPos (getTexture "player") -- Draw player
   : map viewEnemy enemies                      -- Draw enemies
@@ -27,9 +27,9 @@ view screenSize textures (GameState Player { pos = playerPos } keylist enemies t
   where
     translate' coords = translate (x coords) (y coords)
     getTexture        = fromJust . flip lookup textures
-    viewEnemy e       = viewGeneric (getPos e) (getSize e) (getRotation e) (getTexture $ imgKey e)
+    viewEnemy e       = viewGeneric (getPos e) (getScale e) (getRotation e) (getTexture $ imgKey e)
 
-viewGeneric :: Coords -> Size -> Rotation -> Picture -> Picture
+viewGeneric :: Coords -> Scale -> Rotation -> Picture -> Picture
 viewGeneric (Coords x y) size rotation = translate x y . rotate rotation . scale size size
 
 viewText :: Coords -> Float -> Color -> String -> Picture
@@ -51,6 +51,14 @@ viewGameOverIfPlayerDead True _      = Blank
 viewGameOverIfPlayerDead _    (w, h) = pictures [
   color (makeColor 0 0 0 0.6) $ rectangleSolid (fromIntegral w) (fromIntegral h), -- Darken screen
   viewText (center 750 100) 1 white "Game Over!"]
+  
+--writeStatsInFile "d:\\stats.txt" gs
+        
+writeStatsInFile :: FilePath -> GameState -> IO ()
+writeStatsInFile path gs = writeFile path ("time played:" ++ showTime gs)
+
+showTime :: GameState -> String
+showTime gs = show (t gs)
 
 center :: Float -> Float -> Coords
 center w h = Coords (-w / 2) (-h / 2)

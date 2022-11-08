@@ -12,11 +12,11 @@ import System.Random
 
 screenSize = (1000, 600)
 initialState = GameState
-  (Player (Coords (-350) 0) 1 500)   -- player
+  (Player (Coords (-350) 0) (60, 35) 500)   -- player
   []                               -- keyList
-  [Alien   { pos = Coords 300 100,    rotation = 0, size = 1, speed = fst $ uniformR (10, 60) (mkStdGen 10), health = 1 },
-   Astroid { pos = Coords 300 (-100), rotation = 0, size = 1, speed = fst $ uniformR (10, 30) (mkStdGen 70) }]
-        -- aliens
+  [Alien   { pos = Coords 300 100,    rotation = 0, scaleEnemy = 1, size = (55, 15), speed = fst $ uniformR (10, 60) (mkStdGen 10), health = 1 },
+   Astroid { pos = Coords 300 (-100), rotation = 0, scaleEnemy = 1, size = (30, 30), speed = fst $ uniformR (10, 30) (mkStdGen 70) }]        -- aliens
+  []                           -- despawning enemies
   0                            -- elapsed time
   False                        -- paused
   True                         -- alive
