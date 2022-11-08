@@ -19,6 +19,7 @@ view screenSize textures (GameState Player { pos = playerPos } keylist enemies d
  getTexture "wallpaper"                        -- Draw the background
   : translate' playerPos (getTexture "player") -- Draw player
   : map viewEnemy enemies                      -- Draw enemies
+ ++ map viewEnemy despawningEnemies            -- Draw despawning enemies
  ++ viewStats time paused                      -- Draw stats
   : viewPauseMenuIfPaused paused screenSize    -- Draw pause menu if paused
   : viewGameOverIfPlayerDead alive screenSize

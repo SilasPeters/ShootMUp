@@ -11,7 +11,7 @@ import Data.Maybe
 
 -- | Handle one iteration of the game
 step :: Time -> GameState -> GameState
-step dt gs = if skipFrame then gs else (checkCollisions . enemiesLogic dt . playerLogic . processInput dt . incrementTime dt) gs
+step dt gs = if skipFrame then gs else (despawnEnemies . checkCollisions . enemiesLogic dt . playerLogic . processInput dt . incrementTime dt) gs
    where skipFrame = paused gs || not (alive gs) -- do not perform logic if the game is paused or the game is over
 
 incrementTime :: Time -> GameState -> GameState
@@ -43,6 +43,13 @@ checkCollisions gs = let collision :: (Collidable a, Collidable b) => a -> b -> 
                       where
                         f :: Collidable e => GameState -> e -> GameState
                         f gs e = onCollide e gs
+
+despawnEnemies :: GameState -> GameState
+despawnEnemies gs = gs {despawningEnemies = scalingEnemies gs (despawningEnemies gs)}
+
+scalingEnemies :: GameState -> [Enemy] -> [Enemy]
+scalingEnemies gs [] = []
+scalingEnemies gs (e:es) = if (scaleEnemy e) < 0.01 then removeItem e (despawningEnemies gs) else e { scaleEnemy = scaleEnemy e * 0.5} : scalingEnemies gs es
 
 applyEnemyLogic :: GameState -> Time -> (Enemy, Int) -> GameState
 applyEnemyLogic gs dt (e@Astroid {}, i) = updateEnemyAt i gs $ rotate (move e dt (-speed e) 0) (8 * dt)
