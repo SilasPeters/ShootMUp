@@ -29,6 +29,8 @@ data Coords = Coords { x :: CoordX, y :: CoordY }
 instance Num Coords where
   (+) (Coords x y) (Coords p q) = Coords (x + p) (y + q)
   (-) (Coords x y) (Coords p q) = Coords (x - p) (y - q)
+instance Eq Coords where
+  (Coords x y) == (Coords p q) = x == p && y == q
 
 times :: Coords -> Float -> Coords
 (Coords x y) `times` n = Coords (x * n) (y * n)
@@ -77,10 +79,9 @@ instance Entity Enemy where
   imgKey Alien   {} = "alien"
   imgKey Astroid {} = "astroid"
   imgKey Bullet  {} = "bullet"
-  
+
 instance Eq Enemy where
-  x == y = x == y
-  x /= y = x /= y
+  a == b = getPos a == getPos b
   
 instance Collidable Player where
   collidesWith e o = let (Coords ex ey) = getPos e
