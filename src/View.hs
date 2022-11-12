@@ -11,15 +11,15 @@ import SupportiveFunctions
 
 type ScreenSize = (Int, Int)
 
-timePos   = Coords (-490) 250
-pausedPos = Coords (-280) 250
+timePos       = Coords (-490) 250
+difficultyPos = Coords( -490) 200
 
 view :: ScreenSize -> [(String, Picture)] -> GameState -> Picture
-view screenSize textures (GameState Player { pos = playerPos } keylist enemies time paused alive rng) = pictures (
+view screenSize textures (GameState Player { pos = playerPos } _ enemies time paused alive rng _ difficulty) = pictures (
  getTexture "wallpaper"                        -- Draw the background
   : translate' playerPos (getTexture "player") -- Draw player
   : map viewEnemy enemies                      -- Draw enemies
- ++ viewStats time paused                      -- Draw stats
+ ++ viewStats time paused difficulty           -- Draw stats
   : viewPauseMenuIfPaused paused screenSize    -- Draw pause menu if paused
   : viewGameOverIfPlayerDead alive screenSize
   : []
@@ -27,7 +27,7 @@ view screenSize textures (GameState Player { pos = playerPos } keylist enemies t
   where
     translate' coords = translate (x coords) (y coords)
     getTexture        = fromJust . flip lookup textures
-    viewEnemy e       = viewGeneric (getPos e) (getSize e) (getRotation e) (getTexture $ imgKey e)
+    viewEnemy e       = viewGeneric (getPos e) (getSize e) (getRotation e) (getTexture $ entityId e)
 
 viewGeneric :: Coords -> Size -> Rotation -> Picture -> Picture
 viewGeneric (Coords x y) size rotation = translate x y . rotate rotation . scale size size
@@ -35,10 +35,11 @@ viewGeneric (Coords x y) size rotation = translate x y . rotate rotation . scale
 viewText :: Coords -> Float -> Color -> String -> Picture
 viewText coords size c = color c . viewGeneric coords size 0 . Text
 
-viewStats :: Time -> Paused -> Picture
-viewStats t paused = pictures [
-  viewText timePos 0.3 white $ show (roundToDecimals t 2),
-  viewText pausedPos 0.3 white $ show paused]
+viewStats :: Time -> Paused -> Difficulty -> Picture
+viewStats t paused difficulty = pictures [
+  viewText timePos       0.3 white $ show (roundToDecimals t 2),
+  --viewText pausedPos     0.3 white $ show paused,
+  viewText difficultyPos 0.3 white $ show (roundToDecimals difficulty 8)]
 
 viewPauseMenuIfPaused :: Paused -> ScreenSize -> Picture
 viewPauseMenuIfPaused False _      = Blank

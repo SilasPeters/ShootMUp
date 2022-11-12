@@ -2,23 +2,27 @@
 --   in response to time and user input
 module Controller where
 
-import Model
 import Graphics.Gloss.Interface.Pure.Game hiding (rotate)
 import SupportiveFunctions
 import System.Random
 import Data.List
+import Debug.Trace
 import Data.Maybe
+import Model
 
 -- | Handle one iteration of the game
 step :: Time -> GameState -> GameState
-step dt gs = if skipFrame then gs else (checkCollisions . enemiesLogic dt . playerLogic . processInput dt . incrementTime dt) gs
+step dt gs = if skipFrame then gs else (checkCollisions . enemiesLogic dt . spawnEnemies . playerLogic . processInput dt . incrementDifficulty . incrementTime dt) gs
    where skipFrame = paused gs || not (alive gs) -- do not perform logic if the game is paused or the game is over
 
 incrementTime :: Time -> GameState -> GameState
 incrementTime dt gs = gs { t = t gs + dt }
 
+incrementDifficulty :: GameState -> GameState
+incrementDifficulty gs = gs { difficulty = difficulty gs * 1.0001 }
+
 processInput :: Time -> GameState -> GameState -- keyboard wordt hier verwerkt
-processInput dt gs@GameState { keyList = kl, player = p } = foldl f gs kl
+processInput dt gs@GameState { player = p } = foldl f gs (keyList gs)
    where
       f :: GameState -> Char -> GameState
       f gs 'u' = gs { player = move p dt 0 ( pace p) }
@@ -30,8 +34,34 @@ processInput dt gs@GameState { keyList = kl, player = p } = foldl f gs kl
 playerLogic :: GameState -> GameState
 playerLogic = id
 
+spawnEnemies :: GameState -> GameState
+spawnEnemies gs@GameState { rng = rng } = spawnEnemy (spawnEnemy gs "astroid") "alien"
+
+spawnEnemy :: GameState -> EntityId -> GameState
+spawnEnemy gs entityId =
+   let (spawnRoll,  newRandom  ) = uniformR (0,    100) (rng gs)
+       (enemyYRoll, newRandom' ) = uniformR (-300, 300) newRandom
+       (enemySpeed, newRandom'') = uniformR (50,   300) newRandom'
+    in if spawnRoll / difficulty gs <= getSpawnRate gs entityId
+      then gs { rng = newRandom'', enemies = createEnemy enemyYRoll enemySpeed : enemies gs }
+      else gs { rng = newRandom }
+   where
+      createEnemy y speed = case entityId of
+         "astroid" -> Astroid (Coords 500 y) 0 1 speed
+         "alien"   -> Alien   (Coords 500 y) 0 1 speed 2
+         _         -> error $ "Can't spawn enemy of kind " ++ entityId
+
+getSpawnRate :: GameState -> EntityId -> SpawnRate
+getSpawnRate gs id = fromJust $ lookup id (enemySpawnRates gs)
+
 enemiesLogic :: Time -> GameState -> GameState
-enemiesLogic dt gs = foldl (`applyEnemyLogic` dt) gs $ zip (enemies gs) [0..] -- zipping gives applyEnemyLogic both the enemy and its index in the list
+enemiesLogic dt gameState = let relevantEnemies = despawnOutOfBounds (enemies gameState)
+                             in applyEnemyLogics dt (gameState { enemies = relevantEnemies })
+   where
+      despawnOutOfBounds enemies = mapMaybe (\e -> if outOfBounds e then Nothing else Just e) enemies
+      outOfBounds e = let ex = x (getPos e) in ex < -500 || ex > 550
+
+      applyEnemyLogics dt gs' = foldl (`applyEnemyLogic` dt) gs' $ zip (enemies gs') [0..] -- zipping gives applyEnemyLogic both the enemy and its index in the list
 
 checkCollisions :: GameState -> GameState
 checkCollisions gs = let collision :: (Collidable a, Collidable b) => a -> b -> Maybe a
@@ -46,7 +76,7 @@ checkCollisions gs = let collision :: (Collidable a, Collidable b) => a -> b -> 
 
 applyEnemyLogic :: GameState -> Time -> (Enemy, Int) -> GameState
 applyEnemyLogic gs dt (e@Astroid {}, i) = updateEnemyAt i gs $ rotate (move e dt (-speed e) 0) (8 * dt)
-applyEnemyLogic gs dt (e@Alien {},   i) = updateEnemyAt i gs $ move e dt (-speed e) $ fst $ uniformR (-1, 1) (rng gs)
+applyEnemyLogic gs dt (e@Alien {},   i) = let (randomY, newRng) = uniformR (-50, 50) (rng gs) in updateEnemyAt i gs { rng = newRng } $ move e dt (-speed e) randomY
 applyEnemyLogic gs dt (e@Bullet {},  i) = updateEnemyAt i gs $ uncurry (move e dt) (direction e)
 
 updateEnemyAt :: Int -> GameState -> Enemy -> GameState -- replaces the enemy at the given index in the list of enemies in the gs, with a new value

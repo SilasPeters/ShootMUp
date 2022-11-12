@@ -12,20 +12,21 @@ import System.Random
 
 screenSize = (1000, 600)
 initialState = GameState
-  (Player (Coords (-350) 0) 1 500)   -- player
+  (Player (Coords (-350) 0) 1 500) -- player
   []                               -- keyList
-  [Alien   { pos = Coords 300 100,    rotation = 0, size = 1, speed = fst $ uniformR (10, 60) (mkStdGen 10), health = 1 },
-   Astroid { pos = Coords 300 (-100), rotation = 0, size = 1, speed = fst $ uniformR (10, 30) (mkStdGen 70) }]
-        -- aliens
-  0                            -- elapsed time
-  False                        -- paused
-  True                         -- alive
-  (mkStdGen 70)                -- Random Number Generator
+  []                               -- Aliens
+  0                                -- elapsed time
+  False                            -- paused
+  True                             -- alive
+  (mkStdGen 70)                    -- Deterministic Random Number Generator
+  [("astroid", 2.0),
+   ("alien",   0.7)]               -- Spawn rates (in percentage)
+  1                                -- Difficulty
 
 imgWallpaper = "wallpaper.bmp" -- Source: self made in paint
 imgPlayer    = "spaceship.bmp" -- Source: https://pixabay.com/nl/vectors/tekenfilm-ufo-ruimteschip-5181269/
-imgAlien     = "alien.bmp"     -- Source: https://clipartcraft.com/explore/spaceship-clipart-pixel/
 imgAstroid   = "astroid.bmp"   -- Source: https://freepngimg.com/png/33922-asteroid
+imgAlien     = "alien.bmp"     -- Source: https://clipartcraft.com/explore/spaceship-clipart-pixel/
 imgBullet    = "bullet.bmp"    -- Source: self made in paint
 
 main :: IO ()
@@ -43,7 +44,7 @@ main = do
         (view screenSize [("wallpaper", wallpaperImg),
                           ("player",    playerImg),
                           ("astroid",   astroidImg),
-                          ("alien",     alienImg),  -- View function
+                          ("alien",     alienImg),
                           ("bullet",    bulletImg)])  -- View function
         input              -- Event function
         step               -- Step function
