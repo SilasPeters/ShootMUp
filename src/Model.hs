@@ -12,9 +12,9 @@ import Data.List
 import Debug.Trace
 import Data.Maybe
 
-shipMaxY = 220
-shipWidth = 100
-shipHeigth = 80
+shipMaxY = 265
+shipWidth = 60
+shipHeigth = 35
 
 -- Our primitives
 type Paused     = Bool
@@ -30,6 +30,7 @@ type Direction  = Vector
 type SpawnRate  = Float -- in percentage
 type EntityId   = String
 type Difficulty = Float
+type SizeEntity = (Float, Float)
 
 data Coords = Coords { x :: CoordX, y :: CoordY }
 instance Num Coords where
@@ -42,17 +43,19 @@ times :: Coords -> Float -> Coords
 (Coords x y) `times` n = Coords (x * n) (y * n)
 
 -- New data types
-data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, rng :: StdGen, enemySpawnRates :: [(String, Float)], difficulty :: Float }
-data Player    = Player    { pos :: Coords, size :: Size, pace :: Speed }
-data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed }
-               | Alien     { pos :: Coords, rotation :: Rotation, size :: Size, speed :: Speed, health :: Health }
-               | Bullet    { pos :: Coords, rotation :: Rotation, size :: Size, bulletspeed :: Speed, direction :: Direction }
+--data CollidableType = forall a . Collidable a => CollidableType { entity :: a } -- aims to wrap players and enemies into a single list
+data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], despawningEnemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, rng :: StdGen, enemySpawnRates :: [(String, Float)], difficulty :: Float }
+data Player    = Player    { pos :: Coords, size :: SizeEntity, pace :: Speed }
+data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: SizeEntity, speed :: Speed }
+               | Alien     { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: SizeEntity, speed :: Speed, health :: Health }
+               | Bullet    { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: SizeEntity, bulletspeed :: Speed, direction :: Direction}
 
 -- Classes
 class Entity e where
   move         :: e -> Time -> CoordX -> CoordY -> e
   rotate       :: e -> Rotation -> e
   getPos       :: e -> Coords
+  getScale    :: e -> Scale
   getSize      :: e -> Size
   getRotation  :: e -> Rotation
   entityId     :: e -> String
@@ -66,11 +69,11 @@ class Entity e => Collidable e where
 
   collidesWith e o = let (Coords ex ey) = getPos e
                          (Coords ox oy) = getPos o
-                         esize = getSize e
-                         osize = getSize o
-                      in (ex - esize < ox + osize && ox - osize < ex + esize)
-                      && (ey - esize < oy + osize && oy + osize < ey + esize
-                       || ey + esize > oy - osize && oy - osize > ey - esize)
+                         (esizex, esizey) = getSize e
+                         (osizex, osizey) = getSize o
+                      in (ex - esizex < ox + osizex && ox - osizex < ex + esizex)
+                      && (ey - esizey < oy + osizey && oy + osizey < ey + esizey
+                       || ey + esizey > oy - osizey && oy - osizey > ey - esizey)
 
 class ShootingEntity e where
   shoot :: e -> GameState -> GameState
@@ -92,6 +95,7 @@ instance Entity Enemy where
   rotate e@Bullet  { rotation = rotation } degree = e { rotation = rotation + degree}
   getPos = pos
   getSize = size
+  getScale = scaleEnemy
   getRotation = rotation
   entityId Alien   {} = "alien"
   entityId Astroid {} = "astroid"
@@ -104,7 +108,7 @@ instance Collidable Player where
   onCollide e gs = trace "playerCollision" gs { alive = False }
 
 instance Collidable Enemy where
-  onCollide e gs = trace "enemyCollision" gs { enemies = removeItem e (enemies gs) }
+  onCollide e gs = trace "enemyCollision" gs { enemies = removeItem e (enemies gs), despawningEnemies = e : despawningEnemies gs }
 
 instance ShootingEntity Player where
   shoot p@Player {pos = pos} gs =
@@ -117,5 +121,5 @@ instance ShootingEntity Enemy where
     let shipx = x (getPos p)
         shipy = y (getPos p)
     in gs { enemies =
-        Bullet { pos = Coords alienx alieny, rotation = 0, size = 1, bulletspeed = 10, direction = (alienx - shipx, alieny - shipy) }
+        Bullet { pos = Coords alienx alieny, rotation = 0,  scaleEnemy = 1, size = (3,3), bulletspeed = 10, direction = (alienx - shipx, alieny - shipy) }
        : enemies}

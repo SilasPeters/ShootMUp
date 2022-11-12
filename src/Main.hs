@@ -12,7 +12,7 @@ import System.Random
 
 screenSize = (1000, 600)
 initialState = GameState
-  (Player (Coords (-350) 0) 1 500) -- player
+  (Player (Coords (-350) 0) (60, 35) 500)   -- player
   []                               -- keyList
   []                               -- Aliens
   0                                -- elapsed time
