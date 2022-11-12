@@ -23,14 +23,14 @@ type Time       = Float
 type CoordX     = Float
 type CoordY     = Float
 type Health     = Float
-type Size       = Float
+type Size       = (Float, Float)
+type Scale      = Float
 type Rotation   = Float
 type Speed      = Float
 type Direction  = Vector
 type SpawnRate  = Float -- in percentage
 type EntityId   = String
 type Difficulty = Float
-type SizeEntity = (Float, Float)
 
 data Coords = Coords { x :: CoordX, y :: CoordY }
 instance Num Coords where
@@ -45,17 +45,17 @@ times :: Coords -> Float -> Coords
 -- New data types
 --data CollidableType = forall a . Collidable a => CollidableType { entity :: a } -- aims to wrap players and enemies into a single list
 data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], despawningEnemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, rng :: StdGen, enemySpawnRates :: [(String, Float)], difficulty :: Float }
-data Player    = Player    { pos :: Coords, size :: SizeEntity, pace :: Speed }
-data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: SizeEntity, speed :: Speed }
-               | Alien     { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: SizeEntity, speed :: Speed, health :: Health }
-               | Bullet    { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: SizeEntity, bulletspeed :: Speed, direction :: Direction}
+data Player    = Player    { pos :: Coords, size :: Size, pace :: Speed }
+data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, speed :: Speed }
+               | Alien     { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, speed :: Speed, health :: Health }
+               | Bullet    { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, direction :: Direction }
 
 -- Classes
 class Entity e where
   move         :: e -> Time -> CoordX -> CoordY -> e
   rotate       :: e -> Rotation -> e
   getPos       :: e -> Coords
-  getScale    :: e -> Scale
+  getScale     :: e -> Scale
   getSize      :: e -> Size
   getRotation  :: e -> Rotation
   entityId     :: e -> String
@@ -113,7 +113,7 @@ instance Collidable Enemy where
 instance ShootingEntity Player where
   shoot p@Player {pos = pos} gs =
     gs { enemies =
-         Bullet {pos = pos { x = x pos + shipWidth + 10}, rotation = 0, size = 1, bulletspeed = 10, direction = (10, 0) }
+         Bullet {pos = pos { x = x pos + shipWidth + 10}, rotation = 0, scaleEnemy = 1, size = (3,3), direction = (100, 0) }
        : enemies gs}
 
 instance ShootingEntity Enemy where
@@ -121,5 +121,5 @@ instance ShootingEntity Enemy where
     let shipx = x (getPos p)
         shipy = y (getPos p)
     in gs { enemies =
-        Bullet { pos = Coords alienx alieny, rotation = 0,  scaleEnemy = 1, size = (3,3), bulletspeed = 10, direction = (alienx - shipx, alieny - shipy) }
+        Bullet { pos = Coords alienx alieny, rotation = 0, scaleEnemy = 1, size = (3,3), direction = (alienx - shipx, alieny - shipy) }
        : enemies}

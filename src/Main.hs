@@ -15,6 +15,7 @@ initialState = GameState
   (Player (Coords (-350) 0) (60, 35) 500)   -- player
   []                               -- keyList
   []                               -- Aliens
+  []
   0                                -- elapsed time
   False                            -- paused
   True                             -- alive

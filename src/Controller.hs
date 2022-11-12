@@ -46,9 +46,10 @@ spawnEnemy gs entityId =
       then gs { rng = newRandom'', enemies = createEnemy enemyYRoll enemySpeed : enemies gs }
       else gs { rng = newRandom }
    where
+      createEnemy :: Float -> Speed -> Enemy
       createEnemy y speed = case entityId of
-         "astroid" -> Astroid (Coords 500 y) 0 1 speed
-         "alien"   -> Alien   (Coords 500 y) 0 1 speed 2
+         "astroid" -> Astroid (Coords 500 y) 0 1 (40, 40) speed
+         "alien"   -> Alien   (Coords 500 y) 0 1 (40, 40) speed 2
          _         -> error $ "Can't spawn enemy of kind " ++ entityId
 
 getSpawnRate :: GameState -> EntityId -> SpawnRate
