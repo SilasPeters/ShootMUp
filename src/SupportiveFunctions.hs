@@ -16,5 +16,5 @@ replaceAt i a (x:xs) | i < 0     = error "Cannot replace a value with a negative
 removeItem :: (Eq a) => a -> [a] -> [a]
 removeItem _ []                 = []
 removeItem x (y:ys) | x == y    = removeItem x ys
-                    | otherwise = y : removeItem x ys -- todo: kan korter
+                    | otherwise = y : removeItem x ys
 -- Source: https://stackoverflow.com/questions/2097501/learning-haskell-how-to-remove-an-item-from-a-list-in-haskell

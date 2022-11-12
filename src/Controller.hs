@@ -48,8 +48,8 @@ spawnEnemy gs entityId =
    where
       createEnemy :: Float -> Speed -> Enemy
       createEnemy y speed = case entityId of
-         "astroid" -> Astroid (Coords 500 y) 0 1 (40, 40) speed
-         "alien"   -> Alien   (Coords 500 y) 0 1 (40, 40) speed 2
+         "astroid" -> Astroid (Coords 550 y) 0 1 (40, 40) speed
+         "alien"   -> Alien   (Coords 550 y) 0 1 (40, 40) speed 2
          _         -> error $ "Can't spawn enemy of kind " ++ entityId
 
 getSpawnRate :: GameState -> EntityId -> SpawnRate
@@ -80,11 +80,21 @@ despawnEnemies gs = gs {despawningEnemies = scalingEnemies gs (despawningEnemies
 
 scalingEnemies :: GameState -> [Enemy] -> [Enemy]
 scalingEnemies gs [] = []
-scalingEnemies gs (e:es) = if (scaleEnemy e) < 0.01 then removeItem e (despawningEnemies gs) else e { scaleEnemy = scaleEnemy e * 0.5} : scalingEnemies gs es
+scalingEnemies gs (e:es) =
+   if   scaleEnemy e < 0.01
+   then removeItem e (despawningEnemies gs)
+   else e { scaleEnemy = scaleEnemy e * 0.5} : scalingEnemies gs es
 
 applyEnemyLogic :: GameState -> Time -> (Enemy, Int) -> GameState
 applyEnemyLogic gs dt (e@Astroid {}, i) = updateEnemyAt i gs $ rotate (move e dt (-speed e) 0) (8 * dt)
-applyEnemyLogic gs dt (e@Alien {},   i) = let (randomY, newRng) = uniformR (-50, 50) (rng gs) in updateEnemyAt i gs { rng = newRng } $ move e dt (-speed e) randomY
+applyEnemyLogic gs dt (e@Alien {},   i) = let (randomY,   newRng ) = uniformR (-50, 50) (rng gs)
+                                              (shootRoll, newRng') = uniformR (0, 100) newRng
+                                              newGameState = gs {rng = newRng'}
+                                              movedEnemy = move e dt (-speed e) randomY
+                                              gsAfterShoot = if shootRoll <= (2 :: Float)
+                                                           then shoot movedEnemy newGameState
+                                                           else newGameState
+                                           in updateEnemyAt i gsAfterShoot movedEnemy
 applyEnemyLogic gs dt (e@Bullet {},  i) = updateEnemyAt i gs $ uncurry (move e dt) (direction e)
 
 updateEnemyAt :: Int -> GameState -> Enemy -> GameState -- replaces the enemy at the given index in the list of enemies in the gs, with a new value

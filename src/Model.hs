@@ -32,7 +32,7 @@ type SpawnRate  = Float -- in percentage
 type EntityId   = String
 type Difficulty = Float
 
-data Coords = Coords { x :: CoordX, y :: CoordY }
+data Coords = Coords { x :: CoordX, y :: CoordY } deriving (Show)
 instance Num Coords where
   (+) (Coords x y) (Coords p q) = Coords (x + p) (y + q)
   (-) (Coords x y) (Coords p q) = Coords (x - p) (y - q)
@@ -48,7 +48,7 @@ data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [En
 data Player    = Player    { pos :: Coords, size :: Size, pace :: Speed }
 data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, speed :: Speed }
                | Alien     { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, speed :: Speed, health :: Health }
-               | Bullet    { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, direction :: Direction }
+               | Bullet    { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, direction :: Direction }  deriving (Show)
 
 -- Classes
 class Entity e where
@@ -105,21 +105,24 @@ instance Eq Enemy where
   a == b = getPos a == getPos b
 
 instance Collidable Player where
-  onCollide e gs = trace "playerCollision" gs { alive = False }
+  onCollide e gs = gs { alive = False }
 
 instance Collidable Enemy where
-  onCollide e gs = trace "enemyCollision" gs { enemies = removeItem e (enemies gs), despawningEnemies = e : despawningEnemies gs }
+  onCollide e gs = gs { enemies = removeItem e (enemies gs), despawningEnemies = e : despawningEnemies gs }
 
 instance ShootingEntity Player where
   shoot p@Player {pos = pos} gs =
-    gs { enemies =
-         Bullet {pos = pos { x = x pos + shipWidth + 10}, rotation = 0, scaleEnemy = 1, size = (3,3), direction = (100, 0) }
-       : enemies gs}
+    gs { enemies = enemies gs ++
+         [Bullet {pos = pos { x = x pos + shipWidth + 10}, rotation = 0, scaleEnemy = 1, size = (3,3), direction = (100, 0) }]
+       }
 
 instance ShootingEntity Enemy where
-  shoot e@Alien {pos = Coords alienx alieny} gs@GameState { player = p, enemies = enemies } =
+  shoot e@Alien {} gs@GameState { player = p, enemies = enemies } =
     let shipx = x (getPos p)
         shipy = y (getPos p)
-    in gs { enemies =
-        Bullet { pos = Coords alienx alieny, rotation = 0, scaleEnemy = 1, size = (3,3), direction = (alienx - shipx, alieny - shipy) }
-       : enemies}
+        bulletSpeedMagnitude = 0.3
+        bulletDirection = ((shipx - x (getPos e)) * bulletSpeedMagnitude, (shipy - y (getPos e)) * bulletSpeedMagnitude)
+    in gs { enemies = enemies ++
+        [Bullet { pos = getPos e - Coords (20 + fst (getSize e)) 0, rotation = 0, scaleEnemy = 0.7, size = (3,3), direction = bulletDirection }]
+       }
+  shoot Astroid {} gs = gs
