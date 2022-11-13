@@ -6,9 +6,10 @@ import Controller
 import Model
 import View
 
-import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss.Interface.IO.Game
 import Graphics.Gloss
 import System.Random
+import Data.Aeson as JSON
 
 screenSize = (1000, 600)
 initialState = GameState
@@ -37,15 +38,26 @@ main = do
   astroidImg   <- loadBMP imgAstroid
   alienImg     <- loadBMP imgAlien
   bulletImg    <- loadBMP imgBullet
-  -- all IO is loaded, now run the game in a pure environment
-  play (InWindow "Shoot'm up" screenSize (0, 0)) -- Or FullScreen
+  playIO (InWindow "Shoot'm up" screenSize (0, 0)) -- Or FullScreen
         white              -- Background color
         60                 -- Frames per second
         initialState       -- Initial state
-        (view screenSize [("wallpaper", wallpaperImg),
-                          ("player",    playerImg),
-                          ("astroid",   astroidImg),
-                          ("alien",     alienImg),
-                          ("bullet",    bulletImg)])  -- View function
-        input              -- Event function
-        step               -- Step function
+        (return . view screenSize
+          [("wallpaper", wallpaperImg),
+           ("player",    playerImg),
+           ("astroid",   astroidImg),
+           ("alien",     alienImg),
+           ("bullet",    bulletImg)])  -- View function
+        ((return .) . input)   -- Event function
+        ((return .) . step)               -- Step function
+
+
+-- stateJSONLocation = "savedGameState.json"
+
+-- saveStateToJSON :: GameState -> IO ()
+-- saveStateToJSON = writeFile stateJSONLocation . show . JSON.encode
+
+-- loadStateFromJSON :: IO GameState
+-- loadStateFromJSON = do
+--    stateString <- readFile stateJSONLocation
+--    fromJust . JSON.decode $ encode stateString

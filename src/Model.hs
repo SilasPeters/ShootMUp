@@ -1,5 +1,6 @@
 {-#LANGUAGE DuplicateRecordFields#-}
 {-#LANGUAGE ExistentialQuantification#-}
+{-# LANGUAGE DeriveGeneric #-}
 
 -- | This module contains the data types
 --   which represent the state of the game
@@ -11,6 +12,8 @@ import System.Random
 import Data.List
 import Debug.Trace
 import Data.Maybe
+import GHC.Generics
+import Data.Aeson as JSON
 
 shipMaxY = 265
 shipWidth = 60
@@ -32,7 +35,7 @@ type SpawnRate  = Float -- in percentage
 type EntityId   = String
 type Difficulty = Float
 
-data Coords = Coords { x :: CoordX, y :: CoordY } deriving (Show)
+data Coords = Coords { x :: CoordX, y :: CoordY } deriving (Generic, Show)
 instance Num Coords where
   (+) (Coords x y) (Coords p q) = Coords (x + p) (y + q)
   (-) (Coords x y) (Coords p q) = Coords (x - p) (y - q)
@@ -46,9 +49,28 @@ times :: Coords -> Float -> Coords
 --data CollidableType = forall a . Collidable a => CollidableType { entity :: a } -- aims to wrap players and enemies into a single list
 data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], despawningEnemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, rng :: StdGen, enemySpawnRates :: [(String, Float)], difficulty :: Float }
 data Player    = Player    { pos :: Coords, size :: Size, pace :: Speed }
+                  deriving (Generic, Show)
 data Enemy     = Astroid   { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, speed :: Speed }
                | Alien     { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, speed :: Speed, health :: Health }
-               | Bullet    { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, direction :: Direction }  deriving (Show)
+               | Bullet    { pos :: Coords, rotation :: Rotation, scaleEnemy :: Scale, size :: Size, direction :: Direction }
+                  deriving (Generic, Show)
+
+-- JSON Serialization
+data GameStateSerializable = GameStateSerializable Player [Char] [Enemy] [Enemy] Time Paused Alive [(String, Float)] Float
+  deriving (Generic, Show)
+  -- Its meets the exact same pattern as GameState, but excludes rng :: StdGen
+instance ToJSON Coords where
+instance ToJSON Enemy where
+instance ToJSON Player where
+instance ToJSON GameStateSerializable where
+instance FromJSON Enemy
+instance FromJSON Coords
+instance FromJSON Player
+instance FromJSON GameStateSerializable
+
+gs = JSON.encode $ GameStateSerializable (Player (Coords 40 30) (30, 30) 30) "Kaas" [] [] 2.0 False True [] 6.9
+dude :: Maybe GameStateSerializable
+dude = JSON.decode gs
 
 -- Classes
 class Entity e where

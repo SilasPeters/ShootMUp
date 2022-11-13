@@ -9,11 +9,15 @@ import Data.List
 import Debug.Trace
 import Data.Maybe
 import Model
+import Data.Aeson as JSON
 
 -- | Handle one iteration of the game
 step :: Time -> GameState -> GameState
-step dt gs = if skipFrame then gs else (despawnEnemies . checkCollisions . enemiesLogic dt . spawnEnemies . playerLogic . processInput dt . incrementDifficulty . incrementTime dt) gs
-   where skipFrame = paused gs || not (alive gs) -- do not perform logic if the game is paused or the game is over
+step dt gs =
+     if paused gs || not (alive gs) -- do not perform logic if the game is paused or the game is over
+   then gs
+   else (despawnEnemies . checkCollisions . enemiesLogic dt . spawnEnemies . playerLogic . processInput dt . incrementDifficulty . incrementTime dt) gs
+
 
 incrementTime :: Time -> GameState -> GameState
 incrementTime dt gs = gs { t = t gs + dt }
@@ -79,11 +83,11 @@ despawnEnemies :: GameState -> GameState
 despawnEnemies gs = gs {despawningEnemies = scalingEnemies gs (despawningEnemies gs)}
 
 scalingEnemies :: GameState -> [Enemy] -> [Enemy]
-scalingEnemies gs [] = []
+scalingEnemies gs [] = [];
 scalingEnemies gs (e:es) =
    if   scaleEnemy e < 0.01
    then removeItem e (despawningEnemies gs)
-   else e { scaleEnemy = scaleEnemy e * 0.5} : scalingEnemies gs es
+   else e { scaleEnemy = scaleEnemy e * 0.3} : scalingEnemies gs es
 
 applyEnemyLogic :: GameState -> Time -> (Enemy, Int) -> GameState
 applyEnemyLogic gs dt (e@Astroid {}, i) = updateEnemyAt i gs $ rotate (move e dt (-speed e) 0) (8 * dt)
@@ -108,4 +112,11 @@ input (EventKey (SpecialKey KeyDown)  Up   _ _) gs = gs { keyList = removeItem '
 input (EventKey (SpecialKey KeyRight) Down _ _) gs = gs { keyList = 'r' : keyList gs}
 input (EventKey (SpecialKey KeyRight) Up   _ _) gs = gs { keyList = removeItem 'r' (keyList gs)}
 input (EventKey (SpecialKey KeySpace) Down _ _) gs = gs { paused = not (paused gs) }
+--input (EventKey (Char 'o')            Down _ _) gs = saveStateToJSON gs
+--input (EventKey (Char 'i')            Down _ _) gs = loadStateFromJSON
 input _ gs = gs
+
+-- stateJSONLocation = "savedGameState.json"
+
+-- saveStateToJSON :: GameState -> IO ()
+-- saveStateToJSON = writeFile stateJSONLocation . show . JSON.encode
