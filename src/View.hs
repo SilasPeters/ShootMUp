@@ -15,8 +15,7 @@ timePos       = Coords (-490) 250
 difficultyPos = Coords( -490) 200
 
 view :: ScreenSize -> [(String, Picture)] -> GameState -> Picture
-view screenSize textures (GameState Player { pos = playerPos } _ enemies despawningEnemies time paused alive rng _ difficulty) =
-  pictures (
+view screenSize textures (GameState Player { pos = playerPos } _ enemies despawningEnemies time paused alive rng _ difficulty) = pictures (
     getTexture "wallpaper"                           -- Draw the background
       : translate' playerPos (getTexture "player")   -- Draw player
       : map viewEnemy (enemies ++ despawningEnemies) -- Draw enemies

@@ -12,7 +12,7 @@ import Model
 import Data.Aeson as JSON
 --import Data.ByteString.Lazy.Internal
 --import Data.ByteString.Lazy.UTF8 as ByteStuff (ByteString)
-import Data.ByteString as ByteStuff (fromString)
+import Data.ByteString as ByteStuff
 
 -- | Handle one iteration of the game
 step :: Time -> GameState -> GameState
