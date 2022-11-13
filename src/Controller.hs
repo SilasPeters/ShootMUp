@@ -131,7 +131,8 @@ loadStateFromJSON = do
    stateString <- ByteStuff.readFile stateJSONLocation
    case JSON.decode stateString of
       Just x  -> return $ deserializeable x
-      Nothing -> error "Could not load save state. Please create one first by pressing \"O\" (as in Output)"
+      --Nothing -> error "Could not load save state. Please create one first by pressing \"O\" (as in Output)"
+      Nothing -> error $ "Oeps: " ++ (show stateString)
 
 serializeable :: GameState -> GameStateSerializable
 serializeable (GameState p kl es des t paused alive _ sr difficulty)
