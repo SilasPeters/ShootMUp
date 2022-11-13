@@ -129,7 +129,7 @@ saveStateToJSON = writeFile stateJSONLocation . show . JSON.encode . serializeab
 loadStateFromJSON :: IO GameState
 loadStateFromJSON = do
    stateString <- ByteStuff.readFile stateJSONLocation
-   error $ show $ JSON.eitherDecode stateString
+   error $ JSON.eitherDecode stateString
    -- case JSON.decode stateString of
    --    Just x  -> return $ deserializeable x
    --    --Nothing -> error "Could not load save state. Please create one first by pressing \"O\" (as in Output)"
