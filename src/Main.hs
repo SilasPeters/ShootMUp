@@ -9,7 +9,6 @@ import View
 import Graphics.Gloss.Interface.IO.Game
 import Graphics.Gloss
 import System.Random
-import Data.Aeson as JSON
 
 screenSize = (1000, 600)
 initialState = GameState
@@ -50,14 +49,3 @@ main = do
            ("bullet",    bulletImg)])  -- View function
         ((return .) . input)   -- Event function
         ((return .) . step)               -- Step function
-
-
--- stateJSONLocation = "savedGameState.json"
-
--- saveStateToJSON :: GameState -> IO ()
--- saveStateToJSON = writeFile stateJSONLocation . show . JSON.encode
-
--- loadStateFromJSON :: IO GameState
--- loadStateFromJSON = do
---    stateString <- readFile stateJSONLocation
---    fromJust . JSON.decode $ encode stateString

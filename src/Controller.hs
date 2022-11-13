@@ -104,19 +104,24 @@ applyEnemyLogic gs dt (e@Bullet {},  i) = updateEnemyAt i gs $ uncurry (move e d
 updateEnemyAt :: Int -> GameState -> Enemy -> GameState -- replaces the enemy at the given index in the list of enemies in the gs, with a new value
 updateEnemyAt i gs enemy = gs { enemies = replaceAt i enemy (enemies gs) }
 
-input :: Event -> GameState -> GameState
-input (EventKey (SpecialKey KeyUp)    Down _ _) gs = gs { keyList = 'u' : keyList gs}
-input (EventKey (SpecialKey KeyUp)    Up   _ _) gs = gs { keyList = removeItem 'u' (keyList gs)}
-input (EventKey (SpecialKey KeyDown)  Down _ _) gs = gs { keyList = 'd' : keyList gs}
-input (EventKey (SpecialKey KeyDown)  Up   _ _) gs = gs { keyList = removeItem 'd' (keyList gs)}
-input (EventKey (SpecialKey KeyRight) Down _ _) gs = gs { keyList = 'r' : keyList gs}
-input (EventKey (SpecialKey KeyRight) Up   _ _) gs = gs { keyList = removeItem 'r' (keyList gs)}
-input (EventKey (SpecialKey KeySpace) Down _ _) gs = gs { paused = not (paused gs) }
---input (EventKey (Char 'o')            Down _ _) gs = saveStateToJSON gs
---input (EventKey (Char 'i')            Down _ _) gs = loadStateFromJSON
-input _ gs = gs
+input :: Event -> GameState -> IO GameState
+input (EventKey (SpecialKey KeyUp)    Down _ _) gs = return gs { keyList = 'u' : keyList gs}
+input (EventKey (SpecialKey KeyUp)    Up   _ _) gs = return gs { keyList = removeItem 'u' (keyList gs)}
+input (EventKey (SpecialKey KeyDown)  Down _ _) gs = return gs { keyList = 'd' : keyList gs}
+input (EventKey (SpecialKey KeyDown)  Up   _ _) gs = return gs { keyList = removeItem 'd' (keyList gs)}
+input (EventKey (SpecialKey KeyRight) Down _ _) gs = return gs { keyList = 'r' : keyList gs}
+input (EventKey (SpecialKey KeyRight) Up   _ _) gs = return gs { keyList = removeItem 'r' (keyList gs)}
+input (EventKey (SpecialKey KeySpace) Down _ _) gs = return gs { paused = not (paused gs) }
+input (EventKey (Char 'i')            Down _ _) gs = loadStateFromJSON
+input (EventKey (Char 'o')            Down _ _) gs = saveStateToJSON gs
+input _ gs = return gs
 
--- stateJSONLocation = "savedGameState.json"
+stateJSONLocation = "savedGameState.json"
 
--- saveStateToJSON :: GameState -> IO ()
--- saveStateToJSON = writeFile stateJSONLocation . show . JSON.encode
+saveStateToJSON :: GameState -> IO ()
+saveStateToJSON = writeFile stateJSONLocation . show . JSON.encode
+
+loadStateFromJSON :: IO GameState
+loadStateFromJSON = do
+   stateString <- readFile stateJSONLocation
+   fromJust . JSON.decode $ encode stateString
