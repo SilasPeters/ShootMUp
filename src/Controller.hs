@@ -12,14 +12,14 @@ import Model
 import Data.Aeson as JSON
 --import Data.ByteString.Lazy.Internal
 --import Data.ByteString.Lazy.UTF8 as ByteStuff (ByteString)
-import Data.ByteString.Lazy as ByteStuff (readFile)
+--import Data.ByteString.Lazy as ByteStuff (readFile)
 
 -- | Handle one iteration of the game
-step :: Time -> GameState -> GameState
+step :: Time -> GameState -> IO GameState
 step dt gs =
      if paused gs || not (alive gs) -- do not perform logic if the game is paused or the game is over
-   then gs
-   else (despawnEnemies . checkCollisions . enemiesLogic dt . spawnEnemies . playerLogic . processInput dt . incrementDifficulty . incrementTime dt) gs
+   then return gs
+   else (checkCollisions . despawnEnemies . enemiesLogic dt . spawnEnemies . playerLogic . processInput dt . incrementDifficulty . incrementTime dt) gs
 
 
 incrementTime :: Time -> GameState -> GameState
@@ -71,16 +71,16 @@ enemiesLogic dt gameState = let relevantEnemies = despawnOutOfBounds (enemies ga
 
       applyEnemyLogics dt gs' = foldl (`applyEnemyLogic` dt) gs' $ zip (enemies gs') [0..] -- zipping gives applyEnemyLogic both the enemy and its index in the list
 
-checkCollisions :: GameState -> GameState
+checkCollisions :: GameState -> IO GameState
 checkCollisions gs = let collision :: (Collidable a, Collidable b) => a -> b -> Maybe a
                          collision p q = if p `collidesWith` q then Just p else Nothing
                          collisionsPlayerEnemies  = mapMaybe (player gs `collision`) (enemies gs)
                          collisionsEnemiesPlayer  = mapMaybe (`collision` player gs) (enemies gs)
                          collisionsEnemiesEnemies = concatMap (\c -> mapMaybe (c `collision`) (enemies gs)) (enemies gs)
-                      in foldl f (foldl f gs (collisionsEnemiesPlayer ++ collisionsEnemiesEnemies)) collisionsPlayerEnemies
+                      in foldl f (foldl f (return gs) (collisionsEnemiesPlayer ++ collisionsEnemiesEnemies)) collisionsPlayerEnemies
                       where
-                        f :: Collidable e => GameState -> e -> GameState
-                        f gs e = onCollide e gs
+                        f :: Collidable e => IO GameState -> e -> IO GameState
+                        f gs e = gs >>= onCollide e
 
 despawnEnemies :: GameState -> GameState
 despawnEnemies gs = gs {despawningEnemies = scalingEnemies gs (despawningEnemies gs)}
@@ -127,11 +127,11 @@ saveStateToJSON :: GameState -> IO ()
 saveStateToJSON = writeFile stateJSONLocation . show . JSON.encode . serializeable
 
 loadStateFromJSON :: IO GameState
-loadStateFromJSON = do
-   stateString <- ByteStuff.readFile stateJSONLocation
-   case JSON.decode stateString of
-      Just x  -> return $ deserializeable x
-      Nothing -> error "Could not load save state. Please create one first by pressing \"O\" (as in Output)"
+loadStateFromJSON = undefined -- do
+   -- stateString <- ByteStuff.readFile stateJSONLocation
+   -- case JSON.decode stateString of
+   --    Just x  -> return $ deserializeable x
+   --    Nothing -> error "Could not load save state. Please create one first by pressing \"O\" (as in Output)"
 
 serializeable :: GameState -> GameStateSerializable
 serializeable (GameState p kl es des t paused alive _ sr difficulty)

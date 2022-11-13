@@ -87,7 +87,7 @@ class Entity e where
 
 class Entity e => Collidable e where
   collidesWith :: (Entity m) => e -> m -> Bool
-  onCollide    :: e -> GameState -> GameState
+  onCollide    :: e -> GameState -> IO GameState
 
   collidesWith e o = let (Coords ex ey) = getPos e
                          (Coords ox oy) = getPos o
@@ -127,10 +127,17 @@ instance Eq Enemy where
   a == b = getPos a == getPos b
 
 instance Collidable Player where
-  onCollide e gs = gs { alive = False }
+  onCollide e gs = do
+    savePlayedTime $ t gs
+    return gs { alive = False }
+
+timeLocation = "time.txt"
+
+savePlayedTime :: Time -> IO ()
+savePlayedTime = writeFile timeLocation . show
 
 instance Collidable Enemy where
-  onCollide e gs = gs { enemies = removeItem e (enemies gs), despawningEnemies = e : despawningEnemies gs }
+  onCollide e gs = return gs { enemies = removeItem e (enemies gs), despawningEnemies = e : despawningEnemies gs }
 
 instance ShootingEntity Player where
   shoot p@Player {pos = pos} gs =

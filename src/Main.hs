@@ -37,15 +37,22 @@ main = do
   astroidImg   <- loadBMP imgAstroid
   alienImg     <- loadBMP imgAlien
   bulletImg    <- loadBMP imgBullet
-  playIO (InWindow "Shoot'm up" screenSize (0, 0)) -- Or FullScreen
-        white              -- Background color
-        60                 -- Frames per second
-        initialState       -- Initial state
+
+  playedTime   <- loadPlayedTime
+  playIO (InWindow "Shoot'm up" screenSize (0, 0))
+        white                           -- Background color
+        60                              -- Frames per second
+        initialState {t = playedTime}   -- Initial state
         (return . view screenSize
           [("wallpaper", wallpaperImg),
            ("player",    playerImg),
            ("astroid",   astroidImg),
            ("alien",     alienImg),
-           ("bullet",    bulletImg)])  -- View function
-        input   -- Event function
-        ((return .) . step)               -- Step function
+           ("bullet",    bulletImg)])   -- View function
+        input                           -- Event function
+        step                            -- Step function
+
+loadPlayedTime :: IO Time
+loadPlayedTime = do
+  time <- readFile timeLocation
+  return $ read time
