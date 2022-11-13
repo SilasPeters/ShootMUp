@@ -47,5 +47,5 @@ main = do
            ("astroid",   astroidImg),
            ("alien",     alienImg),
            ("bullet",    bulletImg)])  -- View function
-        ((return .) . input)   -- Event function
+        input   -- Event function
         ((return .) . step)               -- Step function
