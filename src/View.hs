@@ -4,15 +4,15 @@
 --   the game state into a picture
 module View where
 
-import Graphics.Gloss hiding (display) -- conflicts with Model.Entity.display
+import Graphics.Gloss
 import Model hiding (rotate)
 import Data.Maybe
 import SupportiveFunctions
 
 type ScreenSize = (Int, Int)
 
-timePos       = Coords (-490) 250
-difficultyPos = Coords( -490) 200
+timePos       = Coords (-490) 270
+difficultyPos = Coords( -490) 240
 
 view :: ScreenSize -> [(String, Picture)] -> GameState -> Picture
 view screenSize textures (GameState Player { pos = playerPos } _ enemies despawningEnemies time paused alive rng _ difficulty) = pictures (
@@ -37,9 +37,8 @@ viewText coords size c = color c . viewGeneric coords size 0 . Text
 
 viewStats :: Time -> Difficulty -> Picture
 viewStats t difficulty = pictures [
-  viewText timePos       0.3 white $ show (roundToDecimals t 2),
-  --viewText pausedPos     0.3 white $ show paused,
-  viewText difficultyPos 0.3 white $ show (roundToDecimals difficulty 8)]
+  viewText timePos       0.2 white $ "Total playtime: " ++ show (roundToDecimals t 2),
+  viewText difficultyPos 0.2 white $ "Current difficulty: " ++ show (roundToDecimals difficulty 8)]
 
 viewPauseMenuIfPaused :: Paused -> ScreenSize -> Picture
 viewPauseMenuIfPaused False _      = Blank
