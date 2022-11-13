@@ -46,7 +46,6 @@ times :: Coords -> Float -> Coords
 (Coords x y) `times` n = Coords (x * n) (y * n)
 
 -- New data types
---data CollidableType = forall a . Collidable a => CollidableType { entity :: a } -- aims to wrap players and enemies into a single list
 data GameState = GameState { player :: Player, keyList :: [Char], enemies :: [Enemy], despawningEnemies :: [Enemy], t :: Time, paused :: Paused, alive :: Alive, rng :: StdGen, enemySpawnRates :: [(String, Float)], difficulty :: Float }
 data Player    = Player    { pos :: Coords, size :: Size, pace :: Speed }
                   deriving (Generic, Show)
@@ -68,10 +67,6 @@ instance FromJSON Coords
 instance FromJSON Player
 instance FromJSON GameStateSerializable
 
-gs = JSON.encode $ GameStateSerializable (Player (Coords 40 30) (30, 30) 30) "Kaas" [] [] 2.0 False True [] 6.9
-dude :: Maybe GameStateSerializable
-dude = JSON.decode gs
-
 -- Classes
 class Entity e where
   move         :: e -> Time -> CoordX -> CoordY -> e
@@ -81,9 +76,6 @@ class Entity e where
   getSize      :: e -> Size
   getRotation  :: e -> Rotation
   entityId     :: e -> String
-  --getSpawnRate :: e -> GameState -> SpawnRate
-
-  --getSpawnRate e gs = fromJust $ lookup (entityId e) (enemySpawnRates gs)
 
 class Entity e => Collidable e where
   collidesWith :: (Entity m) => e -> m -> Bool

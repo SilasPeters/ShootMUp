@@ -10,9 +10,7 @@ import Debug.Trace
 import Data.Maybe
 import Model
 import Data.Aeson as JSON
---import Data.ByteString.Lazy.Internal
---import Data.ByteString.Lazy.UTF8 as ByteStuff (ByteString)
---import Data.ByteString.Lazy as ByteStuff (readFile)
+import Data.ByteString.Lazy as ByteStuff (readFile)
 
 -- | Handle one iteration of the game
 step :: Time -> GameState -> IO GameState
@@ -120,18 +118,18 @@ input (EventKey (Char 'o')            Down _ _) gs = saveStateToJSON gs >> retur
 input _ gs = return gs
 
 
--- After this follows all stuff to store and load the gamestate in and from JSON
+-- After this, follows all stuff to store and load the gamestate in and from JSON
 stateJSONLocation = "savedGameState.json"
 
 saveStateToJSON :: GameState -> IO ()
 saveStateToJSON = writeFile stateJSONLocation . show . JSON.encode . serializeable
 
 loadStateFromJSON :: IO GameState
-loadStateFromJSON = undefined -- do
-   -- stateString <- ByteStuff.readFile stateJSONLocation
-   -- case JSON.decode stateString of
-   --    Just x  -> return $ deserializeable x
-   --    Nothing -> error "Could not load save state. Please create one first by pressing \"O\" (as in Output)"
+loadStateFromJSON = do
+   stateString <- ByteStuff.readFile stateJSONLocation
+   case JSON.decode stateString of
+      Just x  -> return $ deserializeable x
+      Nothing -> error "Could not load save state. Please create one first by pressing \"O\" (as in Output)"
 
 serializeable :: GameState -> GameStateSerializable
 serializeable (GameState p kl es des t paused alive _ sr difficulty)
